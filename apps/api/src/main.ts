@@ -124,19 +124,25 @@ function installShutdownHandlers(app: FastifyInstance) {
 
 const isMain = import.meta.url === `file:///${process.argv[1]?.replace(/\\/g, '/')}`;
 if (isMain) {
+  process.stdout.write(`[boot] isMain=true argv[1]=${process.argv[1]}\n`);
   const port = config.ports.api;
   const host = '0.0.0.0';
   process.stdout.write(`[boot] starting Fastify on ${host}:${port}\n`);
-  const app = await buildApp();
-  process.stdout.write(`[boot] Fastify built, calling listen\n`);
-  installShutdownHandlers(app);
-  app.listen({ port, host }, (err, addr) => {
-    if (err) {
-      process.stdout.write(`[boot] listen error: ${err.message}\n`);
-      app.log.error(err);
-      process.exit(1);
-    }
-    process.stdout.write(`[boot] Consecom API listening at ${addr}\n`);
-    app.log.info(`Consecom API listening at ${addr}`);
-  });
+  try {
+    const app = await buildApp();
+    process.stdout.write(`[boot] Fastify built, calling listen\n`);
+    installShutdownHandlers(app);
+    app.listen({ port, host }, (err, addr) => {
+      if (err) {
+        process.stdout.write(`[boot] listen error: ${err.message}\n`);
+        app.log.error(err);
+        process.exit(1);
+      }
+      process.stdout.write(`[boot] Consecom API listening at ${addr}\n`);
+      app.log.info(`Consecom API listening at ${addr}`);
+    });
+  } catch (err) {
+    process.stdout.write(`[boot] startup error: ${(err as Error).message}\n${(err as Error).stack}\n`);
+    process.exit(1);
+  }
 }
