@@ -21,21 +21,13 @@ interface Plan {
 }
 
 const ADMIN_COOKIE = '__consecom_admin';
-
-async function getCookie(): Promise<string> {
-  const m = document.cookie.match(new RegExp(`(?:^|; )${ADMIN_COOKIE}=([^;]*)`));
-  return m ? decodeURIComponent(m[1]!) : '';
-}
+const PROXY_BASE = '/api/admin/proxy';
 
 async function adminFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const cookie = await getCookie();
-  const res = await fetch(`http://localhost:3001${path}`, {
+  const res = await fetch(`${PROXY_BASE}${path}`, {
     ...init,
-    headers: {
-      ...init.headers,
-      'Content-Type': 'application/json',
-      cookie: `${ADMIN_COOKIE}=${cookie}`,
-    },
+    headers: { 'Content-Type': 'application/json', ...(init.headers ?? {}) },
+    credentials: 'include',
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
