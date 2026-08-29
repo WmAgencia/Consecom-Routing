@@ -2,16 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: dark;
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html, body {
+    background: #0F0907;
+    color: #FFF7ED;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  ::selection {
+    background: #E85D1F;
+    color: #FFF7ED;
+  }
+
+  /* Reduced motion respect */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
-html, body {
-  background: #0a0a0b;
-  color: #f5f5f7;
-}
+@layer components {
+  /* The terminal box that appears on landing + dashboard */
+  .terminal {
+    @apply rounded-lg border border-brasa-700/40 bg-bg-subtle font-mono text-sm;
+    box-shadow: 0 0 60px -20px rgba(232, 93, 31, 0.35),
+      inset 0 1px 0 rgba(255, 247, 237, 0.04);
+  }
 
-::selection {
-  background: #6366f1;
-  color: #fff;
+  .terminal-header {
+    @apply flex items-center gap-2 border-b border-brasa-700/30 px-4 py-3 text-xs text-fg-muted;
+  }
+
+  .terminal-dot {
+    @apply h-3 w-3 rounded-full;
+  }
+
+  .terminal-body {
+    @apply space-y-2 p-5 leading-relaxed;
+  }
+
+  .terminal-prompt {
+    @apply text-brasa-500;
+  }
+
+  .terminal-comment {
+    @apply text-fg-muted;
+  }
+
+  .terminal-output {
+    @apply text-fg/80;
+  }
+
+  .terminal-cursor::after {
+    content: '▊';
+    @apply ml-0.5 inline-block animate-cursor-blink text-brasa-500;
+  }
+
+  /* Pricing card */
+  .plan-card {
+    @apply rounded-xl border border-fg-muted/10 bg-bg-panel p-6 transition;
+  }
+
+  .plan-card-featured {
+    @apply border-brasa-500/50 shadow-glow;
+  }
+
+  /* Buttons */
+  .btn-brasa {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-brasa-500 px-5 py-2.5
+      font-medium text-bg transition hover:bg-brasa-600 active:translate-y-px;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-fg-muted/20
+      px-5 py-2.5 text-sm font-medium text-fg transition hover:border-fg-muted/40 hover:bg-bg-panel;
+  }
 }
