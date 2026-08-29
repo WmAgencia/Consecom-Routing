@@ -13,6 +13,8 @@ import { registerModelsRoutes } from './routes/v1/models.js';
 import { registerApiKeyRoutes } from './routes/v1/api-keys.js';
 import { registerUsageRoutes } from './routes/v1/usage.js';
 import { registerBillingRoutes, registerStripeWebhook } from './routes/v1/billing.js';
+import { registerAdminAuthRoutes } from './routes/admin/auth.js';
+import { registerAdminApi } from './routes/admin/api.js';
 import { errorHandler } from './lib/errors.js';
 import { requestContext } from './lib/context.js';
 import { InMemoryRateLimiter } from './services/rate-limit.js';
@@ -93,6 +95,8 @@ export async function buildApp(deps?: Partial<AppDeps>): Promise<FastifyInstance
   await app.register(registerUsageRoutes, { prefix: '/v1' });
   await app.register(registerBillingRoutes);
   await app.register(registerStripeWebhook);
+  await app.register(registerAdminAuthRoutes);
+  await app.register(registerAdminApi);
 
   return app;
 }
