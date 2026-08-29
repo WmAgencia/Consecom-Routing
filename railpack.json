@@ -1,0 +1,6 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "deploy": {
+    "startCommand": "node --import tsx/esm apps/api/src/main.ts"
+  }
+}
