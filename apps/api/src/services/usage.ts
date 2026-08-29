@@ -32,6 +32,8 @@ export class UsageService {
     const safeCreditsConsumed = Number.isFinite(input.creditsConsumed) ? Math.max(0, Math.round(input.creditsConsumed)) : 0;
     const safeCostCents = Number.isFinite(input.costCents) ? Math.max(0, Math.round(input.costCents)) : 0;
     const safeLatencyMs = Number.isFinite(input.latencyMs) ? Math.max(0, Math.round(input.latencyMs)) : 0;
+    // eslint-disable-next-line no-console
+    console.log('[usage-debug] raw.inputTokens=' + JSON.stringify(input.inputTokens) + ' raw.latency=' + JSON.stringify(input.latencyMs) + ' safeLatency=' + safeLatencyMs);
     await this.db.insert(s.usageEvents).values({
       id: randomUUID(),
       customerId: input.customerId,
