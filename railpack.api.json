@@ -1,0 +1,23 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "node",
+  "packages": {
+    "include": ["apps/api", "packages/db", "packages/shared", "packages/config", "packages/ui"]
+  },
+  "steps": {
+    "install": {
+      "commands": ["pnpm install --frozen-lockfile"]
+    },
+    "build": {
+      "inputs": [{ "step": "install", "include": ["."] }],
+      "commands": [
+        "pnpm --filter @consecom/db --filter @consecom/shared --filter @consecom/config --filter @consecom/api build"
+      ]
+    }
+  },
+  "deploy": {
+    "base": { "image": "ghcr.io/railwayapp/railpack-runtime:latest" },
+    "startCommand": "node --import tsx/esm apps/api/src/main.ts",
+    "inputs": [{ "step": "install" }]
+  }
+}

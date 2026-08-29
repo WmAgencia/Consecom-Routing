@@ -1,0 +1,23 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "node",
+  "packages": {
+    "include": ["apps/web", "packages/shared", "packages/config"]
+  },
+  "steps": {
+    "install": {
+      "commands": ["pnpm install --frozen-lockfile"]
+    },
+    "build": {
+      "inputs": [{ "step": "install", "include": ["."] }],
+      "commands": [
+        "pnpm --filter @consecom/web build"
+      ]
+    }
+  },
+  "deploy": {
+    "base": { "image": "ghcr.io/railwayapp/railpack-runtime:latest" },
+    "startCommand": "node apps/web/.next/standalone/apps/web/server.js",
+    "inputs": [{ "step": "install" }]
+  }
+}
