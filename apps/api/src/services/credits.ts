@@ -105,7 +105,10 @@ export class CreditService {
     refId?: string,
   ): Promise<void> {
     if (actualAmount < 0) throw errors.invalidRequest('actual amount cannot be negative');
-    const release = Math.max(0, reservedAmount - actualAmount);
+    // Defensive: coerce numeric fields. NaN propagates from upstream bugs.
+    const safeReserved = Number.isFinite(reservedAmount) ? Math.max(0, Math.round(reservedAmount)) : 0;
+    const safeActual = Number.isFinite(actualAmount) ? Math.max(0, Math.round(actualAmount)) : 0;
+    const release = Math.max(0, safeReserved - safeActual);
 
     await this.db.transaction(async (tx) => {
       const [bal] = await tx
@@ -116,9 +119,9 @@ export class CreditService {
         .limit(1);
       if (!bal) throw errors.notFound('credit balance not found');
 
-      const newAvailable = bal.creditsAvailable - actualAmount;
-      const newReserved = bal.creditsReserved - reservedAmount;
-      const newUsed = bal.creditsUsed + actualAmount;
+      const newAvailable = bal.creditsAvailable - safeActual;
+      const newReserved = bal.creditsReserved - safeReserved;
+      const newUsed = bal.creditsUsed + safeActual;
       if (newAvailable < 0) {
         // Should never happen if reserve() was correct; defensive check.
         throw errors.internal('credit balance went negative — investigate reserve logic');
@@ -135,8 +138,8 @@ export class CreditService {
         .where(eq(s.creditBalances.customerId, customerId));
 
       const description = release > 0
-        ? `confirm ${actualAmount}, release hold ${release}`
-        : `confirm ${actualAmount}`;
+        ? `confirm ${safeActual}, release hold ${release}`
+        : `confirm ${safeActual}`;
 
       await tx.insert(s.creditLedger).values({
         customerId,
@@ -159,6 +162,7 @@ export class CreditService {
     reservedAmount: number,
     reason: 'provider_error' | 'internal_error' | 'client_cancelled' = 'provider_error',
   ): Promise<void> {
+    const safeReserved = Number.isFinite(reservedAmount) ? Math.max(0, Math.round(reservedAmount)) : 0;
     await this.db.transaction(async (tx) => {
       const [bal] = await tx
         .select()
@@ -170,7 +174,7 @@ export class CreditService {
       await tx
         .update(s.creditBalances)
         .set({
-          creditsReserved: Math.max(0, bal.creditsReserved - reservedAmount),
+          creditsReserved: Math.max(0, bal.creditsReserved - safeReserved),
           updatedAt: new Date(),
         })
         .where(eq(s.creditBalances.customerId, customerId));
@@ -179,8 +183,8 @@ export class CreditService {
         delta: 0,
         reason: 'reservation_release',
         refType: reason,
-        balanceAfter: bal.creditsAvailable - bal.creditsReserved + reservedAmount,
-        description: `release hold ${reservedAmount} (${reason})`,
+        balanceAfter: bal.creditsAvailable - bal.creditsReserved + safeReserved,
+        description: `release hold ${safeReserved} (${reason})`,
       });
     });
   }
