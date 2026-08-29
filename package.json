@@ -1,0 +1,30 @@
+{
+  "name": "consecom-routing",
+  "version": "0.1.0",
+  "description": "Consecom Routing — SaaS AI API Gateway",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.4.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:api": "turbo run dev --filter=@consecom/api",
+    "dev:web": "turbo run dev --filter=@consecom/web",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "db:generate": "pnpm --filter @consecom/db generate",
+    "db:migrate": "pnpm --filter @consecom/db migrate",
+    "db:reset": "pnpm --filter @consecom/db reset",
+    "seed": "pnpm --filter @consecom/db seed",
+    "smoke": "node tooling/scripts/smoke-mvp.mjs"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "typescript": "^5.7.0"
+  }
+}

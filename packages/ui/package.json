@@ -1,0 +1,24 @@
+{
+  "name": "@consecom/ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1"
+  },
+  "peerDependencies": {
+    "react": "^18.3.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@consecom/config": "workspace:*",
+    "@types/react": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}
