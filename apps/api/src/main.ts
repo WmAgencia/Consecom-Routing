@@ -1,5 +1,9 @@
-import 'dotenv/config';
 import Fastify, { type FastifyInstance } from 'fastify';
+import { config as loadEnv } from 'dotenv';
+
+// Load .env.local from project root (absolute path)
+loadEnv({ path: 'C:/Users/junin/consecom-routing/.env.local' });
+
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';

@@ -1,9 +1,16 @@
-import 'dotenv/config';
 import { createDb } from '../client.js';
 import * as s from '../schema.js';
 import { sql } from 'drizzle-orm';
 import { hash } from '@node-rs/argon2';
-import { createCipheriv, randomBytes } from 'node:crypto';
+import { createCipheriv, randomBytes, hkdfSync } from 'node:crypto';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { config } from 'dotenv';
+
+// Load .env.local from project root
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+config({ path: resolve(__dirname, '../../.env.local') });
 
 const url = process.env.DATABASE_URL;
 if (!url) {
@@ -22,7 +29,6 @@ function encryptSecret(plaintext: string): string {
   if (!masterKey) throw new Error('MASTER_ENCRYPTION_KEY required for seed');
   const master = Buffer.from(masterKey, 'hex');
   // HKDF-SHA256 (matches the api/lib/crypto.ts derivation)
-  const { hkdfSync } = require('node:crypto') as typeof import('node:crypto');
   const SALT = Buffer.from('consecom/provider-secrets/v1', 'utf8');
   const derived = hkdfSync('sha256', master, SALT, Buffer.from('cipher', 'utf8'), 32);
   const key = Buffer.from(derived);

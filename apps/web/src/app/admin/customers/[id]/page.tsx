@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '../../_lib';
 import Link from 'next/link';
+import { ActivatePlanForm, CreateKeyForCustomerButton, RevokeKeyButton } from './client-actions';
 
 const ADMIN_COOKIE = '__consecom_admin';
 
@@ -9,6 +10,12 @@ interface CustomerDetail {
   user: { id: string; email: string; name: string; status: string; createdAt: string };
   customer: { status: string } | null;
   balance: { creditsAvailable: number; creditsReserved: number; creditsUsed: number } | null;
+  subscription:
+    | { id: string; status: string; startedAt: string; expiresAt: string; planId: string }
+    | null;
+  plan:
+    | { id: string; code: string; displayName: string; priceCents: number; credits: number; durationDays: number }
+    | null;
   apiKeys: Array<{ id: string; name: string; keyPrefix: string; status: string; requestCount: number }>;
   recentUsage: Array<{
     requestId: string;
@@ -46,6 +53,10 @@ export default async function AdminCustomerDetail({ params }: { params: Promise<
     (data.balance?.creditsReserved ?? 0) +
     (data.balance?.creditsUsed ?? 0);
 
+  const sub = data.subscription;
+  const plan = data.plan;
+  const subIsActive = sub?.status === 'active' && new Date(sub.expiresAt) > new Date();
+
   return (
     <div className="px-6 py-8 md:px-10">
       <Link href="/admin/customers" className="text-sm text-fg-muted hover:text-fg">
@@ -78,21 +89,62 @@ export default async function AdminCustomerDetail({ params }: { params: Promise<
         </div>
       </div>
 
+      {/* Plano & Subscription */}
       <section className="mt-8 rounded-lg border border-fg-muted/15 bg-bg-panel p-6">
-        <h2 className="text-sm font-medium text-fg-muted">API Keys</h2>
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-sm font-medium text-fg-muted">Plano &amp; Subscription</h2>
+            <div className="mt-2 text-lg">
+              {sub && plan ? (
+                <>
+                  <div className="font-semibold">{plan.displayName}</div>
+                  <div className="mt-1 text-xs text-fg-muted">
+                    código: {plan.code} · status:{' '}
+                    <span className={subIsActive ? 'text-success' : 'text-danger'}>
+                      {sub.status}
+                    </span>{' '}
+                    · expira: {new Date(sub.expiresAt).toLocaleDateString('pt-BR')} ·
+                    início: {new Date(sub.startedAt).toLocaleDateString('pt-BR')}
+                  </div>
+                  <div className="mt-1 text-xs text-fg-muted">
+                    R${(plan.priceCents / 100).toFixed(2)} · {plan.credits.toLocaleString('pt-BR')} créditos ·{' '}
+                    {plan.durationDays} dias
+                  </div>
+                </>
+              ) : (
+                <div className="text-sm text-fg-muted">Sem assinatura ativa.</div>
+              )}
+            </div>
+          </div>
+          <ActivatePlanForm customerId={data.user.id} />
+        </div>
+      </section>
+
+      {/* API Keys */}
+      <section className="mt-8 rounded-lg border border-fg-muted/15 bg-bg-panel p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-medium text-fg-muted">API Keys</h2>
+          <CreateKeyForCustomerButton customerId={data.user.id} />
+        </div>
         <div className="mt-4 space-y-2">
           {data.apiKeys.length === 0 && (
             <div className="text-sm text-fg-muted">Nenhuma key.</div>
           )}
           {data.apiKeys.map((k) => (
-            <div key={k.id} className="flex items-center justify-between border-t border-fg-muted/10 pt-2">
+            <div
+              key={k.id}
+              className="flex items-center justify-between border-t border-fg-muted/10 pt-2"
+            >
               <div>
                 <div className="font-medium">{k.name}</div>
                 <div className="font-mono text-xs text-fg-muted">{k.keyPrefix}••••••••</div>
               </div>
-              <div className="text-right text-xs">
-                <div>{k.status}</div>
-                <div className="text-fg-muted">{k.requestCount.toLocaleString('pt-BR')} reqs</div>
+              <div className="flex items-center gap-4 text-right text-xs">
+                <div>
+                  <div>{k.status}</div>
+                  <div className="text-fg-muted">{k.requestCount.toLocaleString('pt-BR')} reqs</div>
+                </div>
+                {k.status === 'active' && <RevokeKeyButton keyId={k.id} keyPrefix={k.keyPrefix} />}
               </div>
             </div>
           ))}

@@ -36,7 +36,7 @@ export const paymentStatusEnum = pgEnum('payment_status', [
   'failed',
   'refunded',
 ]);
-export const paymentGatewayEnum = pgEnum('payment_gateway', ['stripe']);
+export const paymentGatewayEnum = pgEnum('payment_gateway', ['stripe', 'manual']);
 export const apiKeyStatusEnum = pgEnum('api_key_status', ['active', 'revoked', 'expired']);
 export const creditReasonEnum = pgEnum('credit_reason', [
   'purchase',
@@ -216,7 +216,7 @@ export const apiKeys = pgTable(
       .references(() => customers.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 60 }).notNull(),
     keyHash: text('key_hash').notNull(),
-    keyPrefix: varchar('key_prefix', { length: 20 }).notNull(),
+    keyPrefix: varchar('key_prefix', { length: 40 }).notNull(),
     status: apiKeyStatusEnum('status').notNull().default('active'),
     rateLimitOverride: integer('rate_limit_override'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

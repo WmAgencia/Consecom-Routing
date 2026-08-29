@@ -1,7 +1,14 @@
-import 'dotenv/config';
 import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { config } from 'dotenv';
+
+// Load .env.local from project root
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+config({ path: resolve(__dirname, '../../.env.local') });
 
 const url = process.env.DATABASE_URL;
 if (!url) {

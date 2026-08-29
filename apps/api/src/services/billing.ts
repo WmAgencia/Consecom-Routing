@@ -144,6 +144,137 @@ export class BillingService {
     return { received: true, handled: true };
   }
 
+  /**
+   * Public activation entrypoint — reused by both the Stripe webhook and the
+   * admin manual-activate route. Same logic, same idempotency guarantees.
+   */
+  async activatePlan(
+    customerId: string,
+    planCode: string,
+    opts: {
+      gateway: 'stripe' | 'manual';
+      gatewayPaymentId?: string;
+      existingPaymentId?: string;
+    },
+  ): Promise<{
+    subscription: s.Subscription;
+    payment: s.Payment;
+    balance: { creditsAvailable: number; creditsReserved: number; creditsUsed: number };
+    apiKey?: (s.ApiKey & { key: string }) | undefined;
+  }> {
+    // Load plan by code; only active plans can be activated.
+    const [plan] = await this.db
+      .select()
+      .from(s.plans)
+      .where(and(eq(s.plans.code, planCode as 'TESTE'), eq(s.plans.active, true)))
+      .limit(1);
+    if (!plan) throw errors.notFound(`Plano ${planCode} não está ativo`);
+
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + plan.durationDays * 86_400_000);
+
+    let payment: s.Payment | undefined;
+    if (opts.existingPaymentId) {
+      const [p] = await this.db
+        .select()
+        .from(s.payments)
+        .where(eq(s.payments.id, opts.existingPaymentId))
+        .limit(1);
+      payment = p;
+    } else {
+      const gatewayPaymentId =
+        opts.gatewayPaymentId ??
+        (opts.gateway === 'manual' ? `manual_${crypto.randomUUID()}` : null);
+      if (!gatewayPaymentId) {
+        throw errors.invalidRequest('gatewayPaymentId is required for stripe gateway');
+      }
+      const [p] = await this.db
+        .insert(s.payments)
+        .values({
+          customerId,
+          gateway: opts.gateway === 'stripe' ? 'stripe' : ('manual' as 'stripe'),
+          gatewayPaymentId,
+          gatewaySessionId: gatewayPaymentId,
+          amountCents: plan.priceCents,
+          currency: 'BRL',
+          status: 'paid',
+          paidAt: now,
+          rawPayload: { planCode: plan.code, planId: plan.id, source: opts.gateway },
+        })
+        .returning();
+      payment = p;
+    }
+    if (!payment) throw errors.internal('payment row not found after upsert');
+
+    const existingSub = await this.db
+      .select()
+      .from(s.subscriptions)
+      .where(
+        and(
+          eq(s.subscriptions.customerId, customerId),
+          eq(s.subscriptions.planId, plan.id),
+        ),
+      )
+      .limit(1);
+
+    let subscription: s.Subscription | undefined;
+    if (existingSub.length > 0) {
+      const [updated] = await this.db
+        .update(s.subscriptions)
+        .set({ status: 'active', startedAt: now, expiresAt, cancelledAt: null })
+        .where(eq(s.subscriptions.id, existingSub[0]!.id))
+        .returning();
+      subscription = updated;
+    } else {
+      const [created] = await this.db
+        .insert(s.subscriptions)
+        .values({
+          customerId,
+          planId: plan.id,
+          status: 'active',
+          startedAt: now,
+          expiresAt,
+        })
+        .returning();
+      subscription = created;
+    }
+    if (!subscription) throw errors.internal('subscription upsert failed');
+
+    await this.db
+      .update(s.payments)
+      .set({ subscriptionId: subscription.id })
+      .where(eq(s.payments.id, payment.id));
+
+    await this.credits.grant(
+      customerId,
+      plan.credits,
+      'purchase',
+      'payment',
+      payment.id,
+      `Plano ${plan.displayName} (${planCode})`,
+    );
+
+    const [bal] = await this.db
+      .select()
+      .from(s.creditBalances)
+      .where(eq(s.creditBalances.customerId, customerId))
+      .limit(1);
+
+    let apiKey: (s.ApiKey & { key: string }) | undefined;
+    const existingKeys = await this.apiKeys.list(customerId);
+    if (existingKeys.length === 0) {
+      const created = await this.apiKeys.create(customerId, 'default');
+      apiKey = { ...(created as unknown as s.ApiKey), key: created.key };
+    }
+
+    return {
+      subscription,
+      payment,
+      balance: bal ?? { creditsAvailable: 0, creditsReserved: 0, creditsUsed: 0 },
+      apiKey,
+    };
+  }
+
   private async activateFromCheckout(session: import('stripe').Stripe.Checkout.Session) {
     const customerId = session.metadata?.customerId;
     const planId = session.metadata?.planId;
@@ -159,82 +290,14 @@ export class BillingService {
       .where(eq(s.payments.gatewayPaymentId, session.id))
       .returning();
     if (!payment) {
-      // payment row not found — log and bail; reconciliation can fix later.
       console.warn('[billing] payment row not found for session', session.id);
       return;
     }
 
-    // Load plan to know credits + duration.
-    const [plan] = await this.db
-      .select()
-      .from(s.plans)
-      .where(eq(s.plans.id, planId))
-      .limit(1);
-    if (!plan) throw new Error(`plan not found: ${planId}`);
-
-    // Idempotency for the activation step: if a subscription already exists
-    // for this plan + payment, skip creating another.
-    const existingSub = await this.db
-      .select()
-      .from(s.subscriptions)
-      .where(and(
-        eq(s.subscriptions.customerId, customerId),
-        eq(s.subscriptions.planId, plan.id),
-      ))
-      .limit(1);
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + plan.durationDays * 86_400_000);
-
-    if (existingSub.length > 0) {
-      await this.db
-        .update(s.subscriptions)
-        .set({
-          status: 'active',
-          startedAt: now,
-          expiresAt,
-          cancelledAt: null,
-        })
-        .where(eq(s.subscriptions.id, existingSub[0]!.id));
-    } else {
-      await this.db.insert(s.subscriptions).values({
-        customerId,
-        planId: plan.id,
-        status: 'active',
-        startedAt: now,
-        expiresAt,
-      });
-    }
-
-    // Grant credits.
-    await this.credits.grant(
-      customerId,
-      plan.credits,
-      'purchase',
-      'payment',
-      payment.id,
-      `Plano ${plan.displayName} (${planCode})`,
-    );
-
-    // Stamp payment with subscription reference.
-    const [newSub] = await this.db
-      .select()
-      .from(s.subscriptions)
-      .where(and(
-        eq(s.subscriptions.customerId, customerId),
-        eq(s.subscriptions.planId, plan.id),
-      ))
-      .limit(1);
-    if (newSub) {
-      await this.db
-        .update(s.payments)
-        .set({ subscriptionId: newSub.id })
-        .where(eq(s.payments.id, payment.id));
-    }
-
-    // Mint a default API key so the customer can use the API right away.
-    const existingKeys = await this.apiKeys.list(customerId);
-    if (existingKeys.length === 0) {
-      await this.apiKeys.create(customerId, 'default');
-    }
+    // Delegate the rest to the shared activation routine.
+    await this.activatePlan(customerId, planCode, {
+      gateway: 'stripe',
+      existingPaymentId: payment.id,
+    });
   }
 }

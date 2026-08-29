@@ -151,10 +151,22 @@ export async function registerAdminApi(app: FastifyInstance) {
       .orderBy(desc(s.usageEvents.createdAt))
       .limit(50);
 
+    // Active subscription + plan (most recent, regardless of status)
+    const subRows = await db
+      .select({ subscription: s.subscriptions, plan: s.plans })
+      .from(s.subscriptions)
+      .innerJoin(s.plans, eq(s.plans.id, s.subscriptions.planId))
+      .where(eq(s.subscriptions.customerId, id))
+      .orderBy(desc(s.subscriptions.startedAt))
+      .limit(1);
+    const activeSub = subRows[0] ?? null;
+
     return {
       user: row,
       customer,
       balance,
+      subscription: activeSub?.subscription ?? null,
+      plan: activeSub?.plan ?? null,
       apiKeys: keys.map((k) => ({
         id: k.id,
         name: k.name,
@@ -202,6 +214,116 @@ export async function registerAdminApi(app: FastifyInstance) {
     });
     return { ok: true };
   });
+
+  // ---------------------------------------------------------------------------
+  // Master Panel — manual controls (independent of Stripe)
+  // ---------------------------------------------------------------------------
+
+  // Activate / renew a plan for any customer (no Stripe required).
+  app.post<{ Params: { id: string } }>(
+    '/v1/admin/customers/:id/activate-plan',
+    async (req) => {
+      const admin = await requireAdmin(req);
+      const id = req.params.id;
+      const body = (req.body ?? {}) as { planCode?: string };
+      if (!body.planCode) throw new Error('planCode is required');
+
+      const { BillingService } = await import('../../services/billing.js');
+      const billing = new BillingService(db);
+      const result = await billing.activatePlan(id, body.planCode, { gateway: 'manual' });
+
+      await db.insert(s.auditLogs).values({
+        adminUserId: admin.sub,
+        action: 'plan_manual_activate',
+        targetType: 'customer',
+        targetId: id,
+        metadata: {
+          adminEmail: admin.email,
+          planCode: body.planCode,
+          paymentId: result.payment.id,
+          subscriptionId: result.subscription.id,
+          apiKeyId: result.apiKey?.id,
+        },
+      });
+
+      return {
+        ok: true,
+        subscription: result.subscription,
+        payment: result.payment,
+        balance: result.balance,
+        apiKey: result.apiKey,
+      };
+    },
+  );
+
+  // Create an API key for any customer (admin-minted).
+  app.post<{ Params: { id: string } }>(
+    '/v1/admin/customers/:id/api-keys',
+    async (req) => {
+      const admin = await requireAdmin(req);
+      const id = req.params.id;
+      const body = (req.body ?? {}) as { name?: string; expiresInDays?: number };
+      if (!body.name || !body.name.trim()) throw new Error('name is required');
+
+      const { ApiKeyService } = await import('../../services/api-key.js');
+      const apiKeyService = new ApiKeyService(db);
+      const created = await apiKeyService.create(
+        id,
+        body.name.trim(),
+        body.expiresInDays,
+      );
+
+      await db.insert(s.auditLogs).values({
+        adminUserId: admin.sub,
+        action: 'api_key_create_manual',
+        targetType: 'customer',
+        targetId: id,
+        metadata: {
+          adminEmail: admin.email,
+          apiKeyId: created.id,
+          keyPrefix: created.keyPrefix,
+          name: body.name,
+        },
+      });
+
+      return created; // contains the full key, shown once
+    },
+  );
+
+  // Revoke any API key by id (admin override).
+  app.post<{ Params: { id: string } }>(
+    '/v1/admin/api-keys/:id/revoke',
+    async (req) => {
+      const admin = await requireAdmin(req);
+      const keyId = req.params.id;
+
+      // Look up the key to discover its owner.
+      const [key] = await db
+        .select()
+        .from(s.apiKeys)
+        .where(eq(s.apiKeys.id, keyId))
+        .limit(1);
+      if (!key) throw new Error('api key not found');
+
+      const { ApiKeyService } = await import('../../services/api-key.js');
+      const apiKeyService = new ApiKeyService(db);
+      await apiKeyService.revoke(key.customerId, keyId);
+
+      await db.insert(s.auditLogs).values({
+        adminUserId: admin.sub,
+        action: 'api_key_revoke_manual',
+        targetType: 'api_key',
+        targetId: keyId,
+        metadata: {
+          adminEmail: admin.email,
+          customerId: key.customerId,
+          keyPrefix: key.keyPrefix,
+        },
+      });
+
+      return { ok: true };
+    },
+  );
 
   // Adjust credits
   app.post<{ Params: { id: string } }>('/v1/admin/customers/:id/credits', async (req) => {
