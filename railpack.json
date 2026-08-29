@@ -1,5 +1,9 @@
 {
   "$schema": "https://schema.railpack.com",
+  "provider": "node",
+  "packages": {
+    "node": "22"
+  },
   "deploy": {
     "startCommand": "node --import tsx/esm apps/api/src/main.ts"
   }
