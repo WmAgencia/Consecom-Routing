@@ -129,25 +129,25 @@ const isMain =
   process.argv[1]?.endsWith('main.ts') ||
   process.argv[1]?.endsWith('main.js');
 if (isMain) {
-  console.log(`[boot] isMain=true argv=${JSON.stringify(process.argv)}`);
   const port = config.ports.api;
   const host = '0.0.0.0';
-  console.log(`[boot] starting Fastify on ${host}:${port}`);
   try {
     const app = await buildApp();
-    console.log(`[boot] Fastify built, calling listen`);
     installShutdownHandlers(app);
     app.listen({ port, host }, (err, addr) => {
       if (err) {
-        console.error(`[boot] listen error: ${err.message}`);
         app.log.error(err);
         process.exit(1);
       }
-      console.log(`[boot] Consecom API listening at ${addr}`);
       app.log.info(`Consecom API listening at ${addr}`);
     });
   } catch (err) {
-    console.error(`[boot] startup error: ${(err as Error).message}\n${(err as Error).stack}`);
+    app_log_error(err);
     process.exit(1);
   }
+}
+
+function app_log_error(err: unknown): void {
+  // eslint-disable-next-line no-console
+  console.error(`[boot] startup error:`, err);
 }
