@@ -1,0 +1,18 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "node",
+  "packages": {
+    "node": "22"
+  },
+  "steps": {
+    "install": {
+      "commands": ["pnpm install --no-frozen-lockfile --prefer-offline"]
+    },
+    "build": {
+      "commands": ["pnpm --filter @consecom/web build"]
+    }
+  },
+  "deploy": {
+    "startCommand": "sh apps/web/boot.sh"
+  }
+}
