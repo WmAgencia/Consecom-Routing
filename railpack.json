@@ -5,7 +5,11 @@
     "node": "22"
   },
   "deploy": {
+    "base": {
+      "image": "ghcr.io/railwayapp/railpack-runtime:latest"
+    },
     "startCommand": "node --import tsx/esm apps/api/src/main.ts",
+    "paths": ["/mise/shims"],
     "inputs": [
       {
         "step": "packages:mise",
