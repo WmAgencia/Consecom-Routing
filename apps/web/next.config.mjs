@@ -9,9 +9,12 @@ const config = {
     serverActions: { bodySizeLimit: '2mb' },
   },
   async rewrites() {
-    // Server-side rewrites use the public URL. Browser calls hit /v1/* on this
-    // origin and Next proxies them upstream.
-    const apiUrl = process.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+    // Server-side rewrites proxy /v1/* to the API. Use NEXT_PUBLIC_API_URL on
+    // Vercel (public env), PUBLIC_API_URL on Railway, fallback to localhost.
+    const apiUrl =
+      process.env.NEXT_PUBLIC_API_URL ||
+      process.env.PUBLIC_API_URL ||
+      'http://localhost:3001';
     return [
       { source: '/v1/:path*', destination: `${apiUrl}/v1/:path*` },
       { source: '/health', destination: `${apiUrl}/health` },
