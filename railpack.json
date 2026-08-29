@@ -5,6 +5,21 @@
     "node": "22"
   },
   "deploy": {
-    "startCommand": "node --import tsx/esm apps/api/src/main.ts"
+    "startCommand": "node --import tsx/esm apps/api/src/main.ts",
+    "inputs": [
+      {
+        "step": "install",
+        "include": [".", "node_modules"],
+        "exclude": [
+          "node_modules/.cache",
+          "**/.turbo",
+          "**/.next/cache"
+        ]
+      },
+      {
+        "step": "build",
+        "include": ["."]
+      }
+    ]
   }
 }
