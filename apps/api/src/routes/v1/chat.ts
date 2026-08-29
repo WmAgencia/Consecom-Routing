@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { eq } from 'drizzle-orm';
 import {
@@ -49,8 +50,8 @@ export async function registerChatRoutes(app: FastifyInstance) {
   const rateLimiter: RateLimiterPort = app.rateLimiter;
 
   app.post('/chat/completions', async (req: FastifyRequest, reply: FastifyReply) => {
-    const requestId = req.requestId;
-    const startedAt = req.requestStartedAt;
+    const requestId = req.requestId ?? randomUUID();
+    const startedAt = req.requestStartedAt ?? performance.now();
 
     // ---------------------------------------------------------------------
     // Step 1 — parse + validate
