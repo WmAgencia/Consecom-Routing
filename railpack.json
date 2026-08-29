@@ -5,6 +5,6 @@
     "node": "22"
   },
   "deploy": {
-    "startCommand": "sh apps/api/boot.sh"
+    "startCommand": "node apps/api/node_modules/tsx/dist/cli.mjs apps/api/src/main.ts"
   }
 }
