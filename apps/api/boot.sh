@@ -7,4 +7,4 @@ echo "[boot] which node: $(which node 2>&1 || echo 'NOT FOUND')"
 echo "[boot] ls /app/apps/api/node_modules/tsx/dist/cli.mjs: $(ls -la apps/api/node_modules/tsx/dist/cli.mjs 2>&1)"
 echo "[boot] which sh: $(which sh 2>&1 || echo 'NOT FOUND')"
 echo "[boot] starting node..."
-cd /app/apps/api && exec node smoke.mjs
+cd /app/apps/api && exec node ../api/node_modules/tsx/dist/cli.mjs src/main.ts

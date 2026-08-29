@@ -122,27 +122,32 @@ function installShutdownHandlers(app: FastifyInstance) {
   process.on('SIGTERM', stop);
 }
 
-const isMain = import.meta.url === `file:///${process.argv[1]?.replace(/\\/g, '/')}`;
+// Run when this module is loaded as the entry point OR when loaded via tsx CLI.
+// tsx CLI passes main.ts as argv[1] after itself, so check both cases.
+const isMain =
+  import.meta.url === `file:///${process.argv[1]?.replace(/\\/g, '/')}` ||
+  process.argv[1]?.endsWith('main.ts') ||
+  process.argv[1]?.endsWith('main.js');
 if (isMain) {
-  process.stdout.write(`[boot] isMain=true argv[1]=${process.argv[1]}\n`);
+  console.log(`[boot] isMain=true argv=${JSON.stringify(process.argv)}`);
   const port = config.ports.api;
   const host = '0.0.0.0';
-  process.stdout.write(`[boot] starting Fastify on ${host}:${port}\n`);
+  console.log(`[boot] starting Fastify on ${host}:${port}`);
   try {
     const app = await buildApp();
-    process.stdout.write(`[boot] Fastify built, calling listen\n`);
+    console.log(`[boot] Fastify built, calling listen`);
     installShutdownHandlers(app);
     app.listen({ port, host }, (err, addr) => {
       if (err) {
-        process.stdout.write(`[boot] listen error: ${err.message}\n`);
+        console.error(`[boot] listen error: ${err.message}`);
         app.log.error(err);
         process.exit(1);
       }
-      process.stdout.write(`[boot] Consecom API listening at ${addr}\n`);
+      console.log(`[boot] Consecom API listening at ${addr}`);
       app.log.info(`Consecom API listening at ${addr}`);
     });
   } catch (err) {
-    process.stdout.write(`[boot] startup error: ${(err as Error).message}\n${(err as Error).stack}\n`);
+    console.error(`[boot] startup error: ${(err as Error).message}\n${(err as Error).stack}`);
     process.exit(1);
   }
 }
