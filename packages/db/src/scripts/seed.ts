@@ -5,12 +5,12 @@ import { hash } from '@node-rs/argon2';
 import { createCipheriv, randomBytes, hkdfSync } from 'node:crypto';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { config } from 'dotenv';
+import { config as loadEnv } from 'dotenv';
 
 // Load .env.local from project root
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-config({ path: resolve(__dirname, '../../.env.local') });
+loadEnv({ path: resolve(__dirname, '../../../../.env.local') });
 
 const url = process.env.DATABASE_URL;
 if (!url) {
@@ -148,58 +148,74 @@ async function main() {
   console.log(`[seed] ${modelRows.length} models upserted`);
 
   // ---------------------------------------------------------------------------
-  // Plans — TESTE is the only active plan in MVP
+  // Plans — time-based, unlimited usage during the contracted period.
+  // Display names are user-facing; codes (STARTER/PRO/POWER/ENTERPRISE) are
+  // the stable enum key.
   // ---------------------------------------------------------------------------
-  await db
-    .insert(s.plans)
-    .values({
-      code: 'TESTE',
-      displayName: 'Teste',
-      priceCents: 3000, // R$30
-      durationDays: 3,
-      credits: 100_000,
-      rateLimitPerMin: 10,
-      modelsAllowed: ['claude-sonnet-4-5', 'claude-haiku-4-5'],
-      active: true,
-    })
-    .onConflictDoNothing();
-
-  // Future plans — placeholders for Phase 5+
-  for (const p of [
+  const allPlans = [
     {
       code: 'STARTER' as const,
-      displayName: 'Starter',
-      priceCents: 5900,
-      durationDays: 30,
-      credits: 1_000_000,
+      displayName: 'Ilimitado 24h',
+      priceCents: 2500,
+      durationHours: 24,
       rateLimitPerMin: 30,
       modelsAllowed: ['claude-sonnet-4-5', 'claude-haiku-4-5'],
-      active: false,
+      active: true,
     },
     {
       code: 'PRO' as const,
-      displayName: 'Pro',
-      priceCents: 9900,
-      durationDays: 30,
-      credits: 5_000_000,
+      displayName: 'Ilimitado 3 dias',
+      priceCents: 4990,
+      durationHours: 72,
       rateLimitPerMin: 60,
-      modelsAllowed: ['claude-sonnet-4-5', 'claude-haiku-4-5', 'claude-opus-4-5'],
-      active: false,
+      modelsAllowed: ['claude-sonnet-4-5', 'claude-haiku-4-5'],
+      active: true,
     },
     {
       code: 'POWER' as const,
-      displayName: 'Power',
-      priceCents: 19900,
-      durationDays: 30,
-      credits: 20_000_000,
+      displayName: 'Ilimitado 7 dias',
+      priceCents: 10990,
+      durationHours: 168,
       rateLimitPerMin: 100,
-      modelsAllowed: ['claude-sonnet-4-5', 'claude-haiku-4-5', 'claude-opus-4-5'],
-      active: false,
+      modelsAllowed: ['claude-sonnet-4-5', 'claude-haiku-4-5'],
+      active: true,
     },
-  ]) {
-    await db.insert(s.plans).values(p).onConflictDoNothing();
+    {
+      code: 'ENTERPRISE' as const,
+      displayName: 'Ilimitado 30 dias',
+      priceCents: 29990,
+      durationHours: 720,
+      rateLimitPerMin: 200,
+      modelsAllowed: ['claude-sonnet-4-5', 'claude-haiku-4-5'],
+      active: true,
+    },
+    {
+      code: 'TESTE' as const,
+      displayName: 'Teste',
+      priceCents: 0,
+      durationHours: 72,
+      rateLimitPerMin: 10,
+      modelsAllowed: ['claude-sonnet-4-5', 'claude-haiku-4-5'],
+      active: false, // MVP placeholder; not for sale
+    },
+  ];
+  for (const p of allPlans) {
+    await db
+      .insert(s.plans)
+      .values(p)
+      .onConflictDoUpdate({
+        target: s.plans.code,
+        set: {
+          displayName: p.displayName,
+          priceCents: p.priceCents,
+          durationHours: p.durationHours,
+          rateLimitPerMin: p.rateLimitPerMin,
+          modelsAllowed: p.modelsAllowed,
+          active: p.active,
+        },
+      });
   }
-  console.log('[seed] 4 plans upserted (only TESTE active)');
+  console.log(`[seed] ${allPlans.length} plans upserted (4 commercial active)`);
 
   // ---------------------------------------------------------------------------
   // Superadmin user

@@ -3,13 +3,20 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+function formatPlanDuration(hours: number): string {
+  if (hours < 24) return `${hours}h`;
+  const d = hours / 24;
+  return d === 1 ? '1 dia' : `${d} dias`;
+}
+
 interface Plan {
   id: string;
   code: string;
   displayName: string;
   priceCents: number;
-  credits: number;
-  durationDays: number;
+  durationHours: number;
+  rateLimitPerMin: number;
+  modelsAllowed: string[];
   active: boolean;
 }
 
@@ -93,7 +100,7 @@ export function ActivatePlanForm({ customerId }: { customerId: string }) {
           <div className="w-full max-w-md rounded-lg border border-fg-muted/20 bg-bg-panel p-6">
             <h2 className="text-lg font-semibold">Ativar plano manualmente</h2>
             <p className="mt-1 text-sm text-fg-muted">
-              O pagamento será registrado como <code>manual</code>. O cliente recebe créditos imediatamente.
+              O pagamento será registrado como <code>manual</code>. O cliente ganha acesso pelo período do plano (uso ilimitado).
             </p>
             <select
               value={selected}
@@ -103,8 +110,8 @@ export function ActivatePlanForm({ customerId }: { customerId: string }) {
               <option value="">Selecione um plano…</option>
               {plans?.map((p) => (
                 <option key={p.id} value={p.code}>
-                  {p.displayName} — R${(p.priceCents / 100).toFixed(2)} ·{' '}
-                  {p.credits.toLocaleString('pt-BR')} créditos · {p.durationDays}d
+                  {p.displayName} — R${(p.priceCents / 100).toFixed(2).replace('.', ',')} ·{' '}
+                  {formatPlanDuration(p.durationHours)}
                 </option>
               ))}
             </select>

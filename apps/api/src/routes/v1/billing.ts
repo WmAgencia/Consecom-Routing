@@ -36,22 +36,13 @@ export async function registerBillingRoutes(app: FastifyInstance) {
     return { data: rows };
   });
 
-  app.post('/v1/billing/checkout', async (req) => {
-    const customerId = await userId(req);
-    const [user] = await db
-      .select()
-      .from(s.users)
-      .where(eq(s.users.id, customerId))
-      .limit(1);
-    if (!user) throw errors.unauthorized();
-    const body = (req.body ?? {}) as { planCode?: string };
-    if (!body.planCode) throw errors.validation('planCode is required');
-    return billing.createCheckoutSession({
-      customerId,
-      planCode: body.planCode,
-      email: user.email,
-      name: user.name,
-    });
+  app.post('/v1/billing/checkout', async () => {
+    // Stripe checkout is temporarily disabled while the business model moves
+    // to time-based plans with unlimited usage. Stripe's standard checkout
+    // doesn't fit this shape; activation now happens via the Master Panel.
+    throw errors.internal(
+      'Checkout Stripe temporariamente desativado. Planos agora são por tempo com uso ilimitado — solicite a ativação via Master Panel.',
+    );
   });
 }
 

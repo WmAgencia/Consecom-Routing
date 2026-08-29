@@ -835,15 +835,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "duration_days": {
-          "name": "duration_days",
+        "duration_hours": {
+          "name": "duration_hours",
           "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "credits": {
-          "name": "credits",
-          "type": "bigint",
           "primaryKey": false,
           "notNull": true
         },
@@ -1956,7 +1950,8 @@
         "TESTE",
         "STARTER",
         "PRO",
-        "POWER"
+        "POWER",
+        "ENTERPRISE"
       ]
     },
     "public.provider_code": {

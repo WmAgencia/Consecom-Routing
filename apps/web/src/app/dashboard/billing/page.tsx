@@ -2,6 +2,24 @@ import { requireSession, apiFetch } from '@/lib/api';
 import type { Plan, Subscription } from '@consecom/shared';
 import { CheckoutButton } from './checkout-button';
 
+function formatPlanDuration(hours: number): string {
+  if (hours < 24) return `${hours}h`;
+  const d = hours / 24;
+  return d === 1 ? '1 dia' : `${d} dias`;
+}
+
+function formatRemainingTime(expiresAt: string | Date): string {
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms <= 0) return 'expirado';
+  const totalMinutes = Math.floor(ms / 60_000);
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}min`;
+  return `${minutes}min`;
+}
+
 interface SubscriptionWithPlan {
   subscription: Subscription;
   plan: Plan;
@@ -38,8 +56,7 @@ export default async function BillingPage() {
                 <div className="text-xs uppercase tracking-wide text-fg-muted">Plano atual</div>
                 <div className="mt-1 text-2xl font-semibold">{sub.plan.displayName}</div>
                 <div className="mt-1 font-mono text-xs text-fg-muted">
-                  {sub.plan.code} · {sub.plan.rateLimitPerMin} req/min ·{' '}
-                  {(sub.plan.credits / 1000).toFixed(0)}k créditos
+                  {sub.plan.code} · uso ilimitado · {sub.plan.rateLimitPerMin} req/min
                 </div>
               </div>
               <span
@@ -57,25 +74,18 @@ export default async function BillingPage() {
               <Field label="Início" value={new Date(sub.subscription.startedAt).toLocaleDateString('pt-BR')} />
               <Field label="Expira" value={new Date(sub.subscription.expiresAt).toLocaleDateString('pt-BR')} />
               <Field
-                label="Dias restantes"
-                value={String(
-                  Math.max(
-                    0,
-                    Math.ceil(
-                      (new Date(sub.subscription.expiresAt).getTime() - Date.now()) / 86_400_000,
-                    ),
-                  ),
-                )}
+                label="Tempo restante"
+                value={formatRemainingTime(sub.subscription.expiresAt)}
               />
               <Field label="Modelos permitidos" value={sub.plan.modelsAllowed.length.toString()} />
             </dl>
           </div>
 
           <div className="rounded-lg border border-fg-muted/15 bg-bg-panel p-6">
-            <h2 className="text-sm font-medium text-fg-muted">Consumo de créditos</h2>
+            <h2 className="text-sm font-medium text-fg-muted">Uso no período</h2>
             <div className="mt-3 flex items-baseline gap-2">
               <span className="font-mono text-3xl">{b.used.toLocaleString('pt-BR')}</span>
-              <span className="text-fg-muted">/ {total.toLocaleString('pt-BR')}</span>
+              <span className="text-fg-muted">requisições</span>
             </div>
             <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-bg-subtle">
               <div
@@ -84,10 +94,12 @@ export default async function BillingPage() {
               />
             </div>
             <div className="mt-2 flex justify-between text-xs text-fg-muted">
-              <span>usados: {b.used.toLocaleString('pt-BR')}</span>
-              <span>reservados: {b.reserved.toLocaleString('pt-BR')}</span>
+              <span>reservadas: {b.reserved.toLocaleString('pt-BR')}</span>
               <span>disponíveis: {b.available.toLocaleString('pt-BR')}</span>
             </div>
+            <p className="mt-3 text-xs text-fg-muted">
+              Planos atuais são <strong>ilimitados</strong> durante o período contratado — o contador acima mede requisições, não créditos.
+            </p>
           </div>
         </div>
       ) : (
@@ -95,7 +107,7 @@ export default async function BillingPage() {
           <div className="rounded-lg border border-fg-muted/15 bg-bg-panel p-6 text-center">
             <h2 className="text-lg font-semibold">Você não tem assinatura ativa</h2>
             <p className="mt-2 text-sm text-fg-muted">
-              Escolha um plano abaixo para começar a usar a API.
+              Escolha um plano abaixo. Todos oferecem uso ilimitado durante o período contratado.
             </p>
           </div>
 
@@ -105,13 +117,12 @@ export default async function BillingPage() {
                 <div className="text-xs uppercase tracking-wide text-fg-muted">{p.code}</div>
                 <div className="mt-1 text-xl font-semibold">{p.displayName}</div>
                 <div className="mt-1 font-mono text-2xl text-accent">
-                  R${(p.priceCents / 100).toFixed(0)}
+                  R${(p.priceCents / 100).toFixed(2).replace('.', ',')}
                 </div>
                 <div className="mt-1 text-xs text-fg-muted">
-                  {p.durationDays} {p.durationDays === 1 ? 'dia' : 'dias'}
+                  {formatPlanDuration(p.durationHours)} de uso ilimitado
                 </div>
                 <ul className="mt-4 space-y-1 text-sm">
-                  <li>{(p.credits / 1000).toFixed(0)}k créditos</li>
                   <li>{p.rateLimitPerMin} req/min</li>
                   <li>{p.modelsAllowed.length} modelos</li>
                 </ul>

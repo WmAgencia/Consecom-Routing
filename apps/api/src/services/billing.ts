@@ -3,7 +3,6 @@ import type { Db } from '@consecom/db';
 import * as s from '@consecom/db';
 import { errors, CreateCheckoutSchema } from '@consecom/shared';
 import { getStripe, isStripeConfigured } from '../lib/stripe.js';
-import { CreditService } from './credits.js';
 import { ApiKeyService } from './api-key.js';
 
 const PLAN_TO_PRICE_ENV: Record<string, string | undefined> = {
@@ -11,6 +10,7 @@ const PLAN_TO_PRICE_ENV: Record<string, string | undefined> = {
   STARTER: process.env.STRIPE_PRICE_ID_STARTER,
   PRO: process.env.STRIPE_PRICE_ID_PRO,
   POWER: process.env.STRIPE_PRICE_ID_POWER,
+  ENTERPRISE: process.env.STRIPE_PRICE_ID_ENTERPRISE,
 };
 
 /**
@@ -18,17 +18,19 @@ const PLAN_TO_PRICE_ENV: Record<string, string | undefined> = {
  *
  * On `checkout.session.completed`:
  *   1. Mark payment as paid
- *   2. Insert credit_ledger entry (+credits)
- *   3. Create subscription (or activate existing pending one)
- *   4. Create a default API key for the customer
+ *   2. Create subscription (or activate existing pending one)
+ *   3. Create a default API key for the customer
  *
  * Webhook handlers verify Stripe signature and use `stripe_events` for
  * idempotency (a re-delivered event returns 200 immediately).
+ *
+ * NOTE: Plans are now **time-based with unlimited usage** — no credit grant
+ * on activation. Customers are gated by `expiresAt` (set on subscription) and
+ * `rate_limit_per_min` (set per plan).
  */
 export class BillingService {
   constructor(
     private db: Db,
-    private credits: CreditService = new CreditService(db),
     private apiKeys: ApiKeyService = new ApiKeyService(db),
   ) {}
 
@@ -147,6 +149,9 @@ export class BillingService {
   /**
    * Public activation entrypoint — reused by both the Stripe webhook and the
    * admin manual-activate route. Same logic, same idempotency guarantees.
+   *
+   * Time-based plans: subscription.expiresAt = now + plan.durationHours.
+   * No credit grant — usage is unlimited for the active period.
    */
   async activatePlan(
     customerId: string,
@@ -159,7 +164,6 @@ export class BillingService {
   ): Promise<{
     subscription: s.Subscription;
     payment: s.Payment;
-    balance: { creditsAvailable: number; creditsReserved: number; creditsUsed: number };
     apiKey?: (s.ApiKey & { key: string }) | undefined;
   }> {
     // Load plan by code; only active plans can be activated.
@@ -171,7 +175,7 @@ export class BillingService {
     if (!plan) throw errors.notFound(`Plano ${planCode} não está ativo`);
 
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + plan.durationDays * 86_400_000);
+    const expiresAt = new Date(now.getTime() + plan.durationHours * 3_600_000);
 
     let payment: s.Payment | undefined;
     if (opts.existingPaymentId) {
@@ -245,21 +249,6 @@ export class BillingService {
       .set({ subscriptionId: subscription.id })
       .where(eq(s.payments.id, payment.id));
 
-    await this.credits.grant(
-      customerId,
-      plan.credits,
-      'purchase',
-      'payment',
-      payment.id,
-      `Plano ${plan.displayName} (${planCode})`,
-    );
-
-    const [bal] = await this.db
-      .select()
-      .from(s.creditBalances)
-      .where(eq(s.creditBalances.customerId, customerId))
-      .limit(1);
-
     let apiKey: (s.ApiKey & { key: string }) | undefined;
     const existingKeys = await this.apiKeys.list(customerId);
     if (existingKeys.length === 0) {
@@ -270,7 +259,6 @@ export class BillingService {
     return {
       subscription,
       payment,
-      balance: bal ?? { creditsAvailable: 0, creditsReserved: 0, creditsUsed: 0 },
       apiKey,
     };
   }

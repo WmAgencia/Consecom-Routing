@@ -4,6 +4,12 @@ import { requireAdmin } from '../../_lib';
 import Link from 'next/link';
 import { ActivatePlanForm, CreateKeyForCustomerButton, RevokeKeyButton } from './client-actions';
 
+function formatPlanDuration(hours: number): string {
+  if (hours < 24) return `${hours}h`;
+  const d = hours / 24;
+  return d === 1 ? '1 dia' : `${d} dias`;
+}
+
 const ADMIN_COOKIE = '__consecom_admin';
 
 interface CustomerDetail {
@@ -14,7 +20,15 @@ interface CustomerDetail {
     | { id: string; status: string; startedAt: string; expiresAt: string; planId: string }
     | null;
   plan:
-    | { id: string; code: string; displayName: string; priceCents: number; credits: number; durationDays: number }
+    | {
+        id: string;
+        code: string;
+        displayName: string;
+        priceCents: number;
+        durationHours: number;
+        rateLimitPerMin: number;
+        modelsAllowed: string[];
+      }
     | null;
   apiKeys: Array<{ id: string; name: string; keyPrefix: string; status: string; requestCount: number }>;
   recentUsage: Array<{
@@ -69,11 +83,11 @@ export default async function AdminCustomerDetail({ params }: { params: Promise<
 
       <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="rounded-lg border border-fg-muted/15 bg-bg-panel p-5">
-          <div className="text-xs uppercase text-fg-muted">Créditos</div>
-          <div className="mt-1 font-mono text-xl">{data.balance?.creditsAvailable ?? 0}</div>
+          <div className="text-xs uppercase text-fg-muted">Uso no período</div>
+          <div className="mt-1 font-mono text-xl">{totalCredits.toLocaleString('pt-BR')}</div>
           <div className="mt-1 text-xs text-fg-muted">
-            reservados: {data.balance?.creditsReserved ?? 0} · usados: {data.balance?.creditsUsed ?? 0} ·
-            total: {totalCredits}
+            reservados: {data.balance?.creditsReserved ?? 0} · usados:{' '}
+            {data.balance?.creditsUsed ?? 0}
           </div>
         </div>
         <div className="rounded-lg border border-fg-muted/15 bg-bg-panel p-5">
@@ -86,6 +100,9 @@ export default async function AdminCustomerDetail({ params }: { params: Promise<
         <div className="rounded-lg border border-fg-muted/15 bg-bg-panel p-5">
           <div className="text-xs uppercase text-fg-muted">API Keys</div>
           <div className="mt-1 font-mono text-xl">{data.apiKeys.length}</div>
+          <div className="mt-1 text-xs text-fg-muted">
+            modelos permitidos: {plan?.modelsAllowed.length ?? 0}
+          </div>
         </div>
       </div>
 
@@ -103,12 +120,12 @@ export default async function AdminCustomerDetail({ params }: { params: Promise<
                     <span className={subIsActive ? 'text-success' : 'text-danger'}>
                       {sub.status}
                     </span>{' '}
-                    · expira: {new Date(sub.expiresAt).toLocaleDateString('pt-BR')} ·
-                    início: {new Date(sub.startedAt).toLocaleDateString('pt-BR')}
+                    · expira: {new Date(sub.expiresAt).toLocaleString('pt-BR')} ·
+                    início: {new Date(sub.startedAt).toLocaleString('pt-BR')}
                   </div>
                   <div className="mt-1 text-xs text-fg-muted">
-                    R${(plan.priceCents / 100).toFixed(2)} · {plan.credits.toLocaleString('pt-BR')} créditos ·{' '}
-                    {plan.durationDays} dias
+                    R${(plan.priceCents / 100).toFixed(2).replace('.', ',')} ·{' '}
+                    {formatPlanDuration(plan.durationHours)} de uso ilimitado · {plan.rateLimitPerMin} req/min
                   </div>
                 </>
               ) : (

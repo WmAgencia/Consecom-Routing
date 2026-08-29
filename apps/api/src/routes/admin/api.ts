@@ -250,7 +250,6 @@ export async function registerAdminApi(app: FastifyInstance) {
         ok: true,
         subscription: result.subscription,
         payment: result.payment,
-        balance: result.balance,
         apiKey: result.apiKey,
       };
     },

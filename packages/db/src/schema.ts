@@ -23,7 +23,7 @@ import { sql } from 'drizzle-orm';
 export const userRoleEnum = pgEnum('user_role', ['customer', 'admin', 'superadmin']);
 export const userStatusEnum = pgEnum('user_status', ['active', 'suspended', 'pending']);
 export const customerStatusEnum = pgEnum('customer_status', ['active', 'suspended', 'banned']);
-export const planCodeEnum = pgEnum('plan_code', ['TESTE', 'STARTER', 'PRO', 'POWER']);
+export const planCodeEnum = pgEnum('plan_code', ['TESTE', 'STARTER', 'PRO', 'POWER', 'ENTERPRISE']);
 export const subscriptionStatusEnum = pgEnum('subscription_status', [
   'active',
   'expired',
@@ -134,8 +134,7 @@ export const plans = pgTable(
     code: planCodeEnum('code').notNull().unique(),
     displayName: varchar('display_name', { length: 80 }).notNull(),
     priceCents: integer('price_cents').notNull(),
-    durationDays: integer('duration_days').notNull(),
-    credits: bigint('credits', { mode: 'number' }).notNull(),
+    durationHours: integer('duration_hours').notNull(),
     rateLimitPerMin: integer('rate_limit_per_min').notNull(),
     modelsAllowed: jsonb('models_allowed').$type<string[]>().notNull(),
     active: boolean('active').notNull().default(true),
