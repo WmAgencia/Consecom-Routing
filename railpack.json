@@ -4,6 +4,11 @@
   "packages": {
     "node": "22"
   },
+  "steps": {
+    "install": {
+      "commands": ["pnpm install --no-frozen-lockfile --prefer-offline"]
+    }
+  },
   "deploy": {
     "startCommand": "node --import tsx/esm apps/api/src/main.ts"
   }
