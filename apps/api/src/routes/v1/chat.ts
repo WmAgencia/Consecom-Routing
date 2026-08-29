@@ -175,8 +175,6 @@ export async function registerChatRoutes(app: FastifyInstance) {
     }
 
     const latencyMs = Math.round(performance.now() - startedAt);
-    // eslint-disable-next-line no-console
-    console.log('[chat-debug] requestId=' + requestId + ' startedAt=' + startedAt + ' now=' + performance.now() + ' latency=' + latencyMs + ' prompt=' + resp.usage.prompt_tokens + ' completion=' + resp.usage.completion_tokens + ' costCents=' + cost.totalCostCents);
 
     // ---------------------------------------------------------------------
     // Step 10 + 11 — record usage, confirm or refund
