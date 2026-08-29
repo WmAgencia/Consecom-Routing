@@ -10,10 +10,6 @@ export function createDb(connectionString: string) {
     idle_timeout: 30,
     connect_timeout: 10,
     prepare: false, // Neon's pooler doesn't support prepared statements yet
-    debug: (_query, params) => {
-      // eslint-disable-next-line no-console
-      console.log('[pg-debug] params=', JSON.stringify(params));
-    },
     onnotice: () => {},
   });
   return drizzle(client, { schema });
