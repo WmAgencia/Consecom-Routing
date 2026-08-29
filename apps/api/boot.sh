@@ -6,4 +6,4 @@ echo "[boot] PATH=$PATH"
 echo "[boot] which node: $(which node 2>&1 || echo 'NOT FOUND')"
 echo "[boot] ls /app/apps/api/node_modules/tsx/dist/cli.mjs: $(ls -la apps/api/node_modules/tsx/dist/cli.mjs 2>&1)"
 echo "[boot] starting node..."
-exec node apps/api/node_modules/tsx/dist/cli.mjs apps/api/src/main.ts
+exec node apps/api/node_modules/tsx/dist/cli.mjs -e "console.log('[boot] hello from tsx'); console.error('stderr from tsx')"
