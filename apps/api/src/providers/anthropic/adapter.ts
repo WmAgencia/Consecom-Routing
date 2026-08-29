@@ -95,6 +95,8 @@ export class AnthropicAdapter implements ProviderAdapter {
       inputPer1kCents: 300,
       outputPer1kCents: 1500,
     };
+    // eslint-disable-next-line no-console
+    console.log('[estimateCost] resp.model=' + resp.model + ' prompt=' + resp.usage?.prompt_tokens + ' completion=' + resp.usage?.completion_tokens + ' pricing=' + JSON.stringify(pricing));
     const inputCost = Math.ceil((resp.usage.prompt_tokens / 1000) * pricing.inputPer1kCents);
     const outputCost = Math.ceil(
       (resp.usage.completion_tokens / 1000) * pricing.outputPer1kCents,
