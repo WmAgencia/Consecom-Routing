@@ -56,7 +56,7 @@ export interface AdapterContext {
   /** Request ID for log correlation */
   requestId: string;
   /** Abort signal for timeouts */
-  signal?: AbortSignal;
+  signal?: AbortSignal | undefined;
 }
 
 export interface ProviderAdapter {

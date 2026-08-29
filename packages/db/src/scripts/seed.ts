@@ -3,6 +3,7 @@ import { createDb } from '../client.js';
 import * as s from '../schema.js';
 import { sql } from 'drizzle-orm';
 import { hash } from '@node-rs/argon2';
+import { createCipheriv, randomBytes } from 'node:crypto';
 
 const url = process.env.DATABASE_URL;
 if (!url) {
@@ -11,6 +12,26 @@ if (!url) {
 }
 
 const db = createDb(url);
+
+/**
+ * Encrypt a provider API key for storage using AES-256-GCM.
+ * Mirrors apps/api/src/lib/crypto.ts (kept inline so seed has no API dep).
+ */
+function encryptSecret(plaintext: string): string {
+  const masterKey = process.env.MASTER_ENCRYPTION_KEY;
+  if (!masterKey) throw new Error('MASTER_ENCRYPTION_KEY required for seed');
+  const master = Buffer.from(masterKey, 'hex');
+  // HKDF-SHA256 (matches the api/lib/crypto.ts derivation)
+  const { hkdfSync } = require('node:crypto') as typeof import('node:crypto');
+  const SALT = Buffer.from('consecom/provider-secrets/v1', 'utf8');
+  const derived = hkdfSync('sha256', master, SALT, Buffer.from('cipher', 'utf8'), 32);
+  const key = Buffer.from(derived);
+  const iv = randomBytes(12);
+  const cipher = createCipheriv('aes-256-gcm', key, iv);
+  const ct = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return Buffer.concat([iv, ct, tag]).toString('base64');
+}
 
 async function main() {
   console.log('[seed] starting ...');
@@ -32,6 +53,30 @@ async function main() {
 
   if (anthropic) {
     console.log('[seed] provider anthropic created');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Provider secret — encrypt the Anthropic API key at rest
+  // ---------------------------------------------------------------------------
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  if (anthropicKey) {
+    const providerRow = (
+      await db.select().from(s.providers).where(sql`code = 'anthropic'`).limit(1)
+    )[0];
+    if (providerRow) {
+      const encryptedKey = encryptSecret(anthropicKey);
+      await db
+        .insert(s.providerSecrets)
+        .values({
+          providerId: providerRow.id,
+          encryptedKey,
+          keyHint: anthropicKey.slice(-4),
+        })
+        .onConflictDoNothing();
+      console.log(`[seed] provider secret stored (hint: ...${anthropicKey.slice(-4)})`);
+    }
+  } else {
+    console.warn('[seed] ANTHROPIC_API_KEY not set — provider secret NOT stored');
   }
 
   // ---------------------------------------------------------------------------

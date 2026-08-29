@@ -5,13 +5,21 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import { config } from '@consecom/config';
 import { createDb, type Db } from '@consecom/db';
+import type { RateLimiterPort } from '@consecom/shared';
 import { registerHealthRoutes } from './routes/health.js';
 import { registerAuthRoutes } from './routes/auth.js';
+import { registerChatRoutes } from './routes/v1/chat.js';
+import { registerModelsRoutes } from './routes/v1/models.js';
+import { registerApiKeyRoutes } from './routes/v1/api-keys.js';
+import { registerUsageRoutes } from './routes/v1/usage.js';
+import { registerBillingRoutes } from './routes/v1/billing.js';
 import { errorHandler } from './lib/errors.js';
 import { requestContext } from './lib/context.js';
+import { InMemoryRateLimiter } from './services/rate-limit.js';
 
 export interface AppDeps {
   db: Db;
+  rateLimiter?: RateLimiterPort;
 }
 
 export async function buildApp(deps?: Partial<AppDeps>): Promise<FastifyInstance> {
@@ -19,6 +27,7 @@ export async function buildApp(deps?: Partial<AppDeps>): Promise<FastifyInstance
   if (!url) throw new Error('DATABASE_URL is required');
 
   const db = deps?.db ?? createDb(url);
+  const rateLimiter = deps?.rateLimiter ?? new InMemoryRateLimiter();
 
   const app = Fastify({
     logger: {
@@ -54,6 +63,7 @@ export async function buildApp(deps?: Partial<AppDeps>): Promise<FastifyInstance
 
   app.decorate('db', db);
   app.decorate('config', config);
+  app.decorate('rateLimiter', rateLimiter);
 
   await app.register(requestContext);
   app.setErrorHandler(errorHandler);
@@ -61,6 +71,11 @@ export async function buildApp(deps?: Partial<AppDeps>): Promise<FastifyInstance
   // Public
   await app.register(registerHealthRoutes);
   await app.register(registerAuthRoutes, { prefix: '/v1/auth' });
+  await app.register(registerChatRoutes, { prefix: '/v1' });
+  await app.register(registerModelsRoutes, { prefix: '/v1' });
+  await app.register(registerApiKeyRoutes, { prefix: '/v1' });
+  await app.register(registerUsageRoutes, { prefix: '/v1' });
+  await app.register(registerBillingRoutes, { prefix: '/v1' });
 
   return app;
 }
@@ -70,7 +85,19 @@ declare module 'fastify' {
   interface FastifyInstance {
     db: Db;
     config: typeof config;
+    rateLimiter: RateLimiterPort;
   }
+}
+
+// Cleanup on shutdown
+function installShutdownHandlers(app: FastifyInstance) {
+  const stop = async () => {
+    app.log.info('shutting down...');
+    await app.close();
+    process.exit(0);
+  };
+  process.on('SIGINT', stop);
+  process.on('SIGTERM', stop);
 }
 
 const isMain = import.meta.url === `file:///${process.argv[1]?.replace(/\\/g, '/')}`;
@@ -78,6 +105,7 @@ if (isMain) {
   const port = config.ports.api;
   const host = '0.0.0.0';
   const app = await buildApp();
+  installShutdownHandlers(app);
   app.listen({ port, host }, (err, addr) => {
     if (err) {
       app.log.error(err);
