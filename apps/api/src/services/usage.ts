@@ -25,6 +25,13 @@ export class UsageService {
     status: 'success' | 'error' | 'rate_limited';
     errorCode?: string;
   }): Promise<void> {
+    // Defensive: coerce all numeric fields to safe integers. NaN/undefined
+    // would otherwise raise Postgres 22P02 "invalid input syntax for type integer".
+    const safeInputTokens = Number.isFinite(input.inputTokens) ? Math.max(0, Math.round(input.inputTokens)) : 0;
+    const safeOutputTokens = Number.isFinite(input.outputTokens) ? Math.max(0, Math.round(input.outputTokens)) : 0;
+    const safeCreditsConsumed = Number.isFinite(input.creditsConsumed) ? Math.max(0, Math.round(input.creditsConsumed)) : 0;
+    const safeCostCents = Number.isFinite(input.costCents) ? Math.max(0, Math.round(input.costCents)) : 0;
+    const safeLatencyMs = Number.isFinite(input.latencyMs) ? Math.max(0, Math.round(input.latencyMs)) : 0;
     await this.db.insert(s.usageEvents).values({
       id: randomUUID(),
       customerId: input.customerId,
@@ -32,12 +39,12 @@ export class UsageService {
       modelId: input.modelId,
       providerId: input.providerId,
       requestId: input.requestId,
-      inputTokens: input.inputTokens,
-      outputTokens: input.outputTokens,
-      totalTokens: input.inputTokens + input.outputTokens,
-      creditsConsumed: input.creditsConsumed,
-      costCents: input.costCents,
-      latencyMs: input.latencyMs,
+      inputTokens: safeInputTokens,
+      outputTokens: safeOutputTokens,
+      totalTokens: safeInputTokens + safeOutputTokens,
+      creditsConsumed: safeCreditsConsumed,
+      costCents: safeCostCents,
+      latencyMs: safeLatencyMs,
       status: input.status,
       errorCode: input.errorCode ?? null,
     });
@@ -56,6 +63,8 @@ export class UsageService {
     ip?: string | undefined;
     userAgent?: string | undefined;
   }): Promise<void> {
+    const safeLatencyMs = Number.isFinite(input.latencyMs) ? Math.max(0, Math.round(input.latencyMs)) : 0;
+    const safeStatusCode = Number.isFinite(input.statusCode) ? Math.round(input.statusCode) : 0;
     await this.db.insert(s.requestLogs).values({
       id: randomUUID(),
       requestId: input.requestId,
@@ -63,8 +72,8 @@ export class UsageService {
       apiKeyId: input.apiKeyId,
       endpoint: input.endpoint,
       method: input.method,
-      statusCode: input.statusCode,
-      latencyMs: input.latencyMs,
+      statusCode: safeStatusCode,
+      latencyMs: safeLatencyMs,
       errorCode: input.errorCode ?? null,
       payloadMeta: input.payloadMeta ?? null,
       ip: input.ip ?? null,
