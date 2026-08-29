@@ -1,17 +1,23 @@
 import { requireSession, apiFetch } from '@/lib/api';
-import type { SubscriptionWithPlan } from '@consecom/shared';
+import type { Plan, Subscription } from '@consecom/shared';
+import { CheckoutButton } from './checkout-button';
 
+interface SubscriptionWithPlan {
+  subscription: Subscription;
+  plan: Plan;
+}
 interface UsageResponse {
   balance: { available: number; reserved: number; used: number };
 }
 
 export default async function BillingPage() {
   await requireSession();
-  const [sub, usage] = await Promise.all([
+  const [sub, usage, plansRes] = await Promise.all([
     apiFetch<SubscriptionWithPlan | null>('/v1/billing/plan').catch(() => null),
     apiFetch<UsageResponse>('/v1/usage?limit=1').catch(() => ({
       balance: { available: 0, reserved: 0, used: 0 },
     })),
+    apiFetch<{ data: Plan[] }>('/v1/billing/plans').catch(() => ({ data: [] })),
   ]);
 
   const b = usage.balance;
@@ -29,7 +35,7 @@ export default async function BillingPage() {
           <div className="rounded-lg border border-fg-muted/15 bg-bg-panel p-6">
             <div className="flex items-start justify-between">
               <div>
-                <div className="text-xs uppercase tracking-wide text-fg-muted">Plano</div>
+                <div className="text-xs uppercase tracking-wide text-fg-muted">Plano atual</div>
                 <div className="mt-1 text-2xl font-semibold">{sub.plan.displayName}</div>
                 <div className="mt-1 font-mono text-xs text-fg-muted">
                   {sub.plan.code} · {sub.plan.rateLimitPerMin} req/min ·{' '}
@@ -85,18 +91,34 @@ export default async function BillingPage() {
           </div>
         </div>
       ) : (
-        <div className="mt-8 rounded-lg border border-fg-muted/15 bg-bg-panel p-8 text-center">
-          <h2 className="text-lg font-semibold">Você não tem assinatura ativa</h2>
-          <p className="mt-2 text-sm text-fg-muted">
-            Compre um plano para começar a usar a API.
-          </p>
-          <button
-            disabled
-            className="mt-6 cursor-not-allowed rounded-md bg-fg-muted/30 px-6 py-2.5 text-sm font-medium text-fg-muted"
-            title="Checkout disponível na FASE 4"
-          >
-            Comprar plano R$30 (em breve)
-          </button>
+        <div className="mt-8 space-y-6">
+          <div className="rounded-lg border border-fg-muted/15 bg-bg-panel p-6 text-center">
+            <h2 className="text-lg font-semibold">Você não tem assinatura ativa</h2>
+            <p className="mt-2 text-sm text-fg-muted">
+              Escolha um plano abaixo para começar a usar a API.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {plansRes.data.map((p) => (
+              <div key={p.id} className="rounded-lg border border-fg-muted/15 bg-bg-panel p-5">
+                <div className="text-xs uppercase tracking-wide text-fg-muted">{p.code}</div>
+                <div className="mt-1 text-xl font-semibold">{p.displayName}</div>
+                <div className="mt-1 font-mono text-2xl text-accent">
+                  R${(p.priceCents / 100).toFixed(0)}
+                </div>
+                <div className="mt-1 text-xs text-fg-muted">
+                  {p.durationDays} {p.durationDays === 1 ? 'dia' : 'dias'}
+                </div>
+                <ul className="mt-4 space-y-1 text-sm">
+                  <li>{(p.credits / 1000).toFixed(0)}k créditos</li>
+                  <li>{p.rateLimitPerMin} req/min</li>
+                  <li>{p.modelsAllowed.length} modelos</li>
+                </ul>
+                <CheckoutButton planCode={p.code} />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

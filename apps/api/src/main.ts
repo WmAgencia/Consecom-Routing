@@ -12,7 +12,7 @@ import { registerChatRoutes } from './routes/v1/chat.js';
 import { registerModelsRoutes } from './routes/v1/models.js';
 import { registerApiKeyRoutes } from './routes/v1/api-keys.js';
 import { registerUsageRoutes } from './routes/v1/usage.js';
-import { registerBillingRoutes } from './routes/v1/billing.js';
+import { registerBillingRoutes, registerStripeWebhook } from './routes/v1/billing.js';
 import { errorHandler } from './lib/errors.js';
 import { requestContext } from './lib/context.js';
 import { InMemoryRateLimiter } from './services/rate-limit.js';
@@ -68,6 +68,22 @@ export async function buildApp(deps?: Partial<AppDeps>): Promise<FastifyInstance
   await app.register(requestContext);
   app.setErrorHandler(errorHandler);
 
+  // Capture raw body for webhook signature verification.
+  app.addContentTypeParser(
+    'application/json',
+    { parseAs: 'buffer' },
+    (_req, body, done) => {
+      // Stash the raw bytes for routes that need them (Stripe webhook).
+      (_req as unknown as { rawBody?: Buffer }).rawBody = body as Buffer;
+      try {
+        const parsed = body.length > 0 ? JSON.parse((body as Buffer).toString('utf8')) : {};
+        done(null, parsed);
+      } catch (err) {
+        done(err as Error, undefined);
+      }
+    },
+  );
+
   // Public
   await app.register(registerHealthRoutes);
   await app.register(registerAuthRoutes, { prefix: '/v1/auth' });
@@ -75,7 +91,8 @@ export async function buildApp(deps?: Partial<AppDeps>): Promise<FastifyInstance
   await app.register(registerModelsRoutes, { prefix: '/v1' });
   await app.register(registerApiKeyRoutes, { prefix: '/v1' });
   await app.register(registerUsageRoutes, { prefix: '/v1' });
-  await app.register(registerBillingRoutes, { prefix: '/v1' });
+  await app.register(registerBillingRoutes);
+  await app.register(registerStripeWebhook);
 
   return app;
 }
