@@ -34,3 +34,5 @@ coverage/
 *.pem
 *.key
 *.p12
+
+.vercel

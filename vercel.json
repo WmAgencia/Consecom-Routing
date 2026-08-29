@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "pnpm install --frozen-lockfile && next build",
-  "outputDirectory": ".next",
+  "buildCommand": "pnpm --filter @consecom/web build",
+  "outputDirectory": "apps/web/.next",
   "installCommand": "pnpm install --frozen-lockfile",
   "rewrites": [
     { "source": "/v1/:path*", "destination": "https://api.consecom.com.br/v1/:path*" },
