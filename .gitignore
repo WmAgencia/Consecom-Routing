@@ -36,3 +36,4 @@ coverage/
 *.p12
 
 .vercel
+.env*
