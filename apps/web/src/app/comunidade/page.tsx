@@ -17,27 +17,26 @@ interface Subscription {
   plan: { code: string; displayName: string };
 }
 
-async function fetchSubscription(): Promise<Subscription | null> {
+async function fetchSubscription(): Promise<boolean> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
-  if (!token) return null;
+  if (!token) return false;
 
   try {
-    const res = await fetch(`${API_BASE}/v1/billing/plan`, {
+    const res = await fetch(`${API_BASE}/v1/billing/active`, {
       headers: { cookie: `${SESSION_COOKIE}=${token}` },
       cache: 'no-store',
     });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { subscription: Subscription | null };
-    return data.subscription;
+    if (!res.ok) return false;
+    const data = (await res.json()) as { active: boolean };
+    return data.active === true;
   } catch {
-    return null;
+    return false;
   }
 }
 
 export default async function CommunityPage() {
-  const subscription = await fetchSubscription();
-  const isMember = subscription?.status === 'active';
+  const isMember = await fetchSubscription();
 
   return (
     <main className="min-h-screen overflow-x-hidden">
@@ -129,10 +128,9 @@ export default async function CommunityPage() {
           )}
         </div>
 
-        {isMember && subscription && (
+        {isMember && (
           <p className="mt-6 text-xs text-fg-muted">
-            Plano ativo: <span className="font-mono">{subscription.plan.displayName}</span> ·
-            expira em {new Date(subscription.expiresAt).toLocaleDateString('pt-BR')}
+            Assinatura ativa — você tem acesso completo ao grupo.
           </p>
         )}
       </section>

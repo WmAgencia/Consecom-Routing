@@ -28,6 +28,25 @@ export async function registerBillingRoutes(app: FastifyInstance) {
     return sub ?? null;
   });
 
+  /**
+   * Lightweight endpoint used by the marketing site to gate community access.
+   * Returns `{ active: boolean }` — true iff the caller has a subscription
+   * whose `status === 'active'` and `expiresAt > now`.
+   */
+  app.get('/v1/billing/active', async (req) => {
+    const customerId = await userId(req);
+    const [sub] = await db
+      .select({ status: s.subscriptions.status, expiresAt: s.subscriptions.expiresAt })
+      .from(s.subscriptions)
+      .where(eq(s.subscriptions.customerId, customerId))
+      .orderBy(s.subscriptions.startedAt)
+      .limit(1);
+    if (!sub) return { active: false };
+    const isActive =
+      sub.status === 'active' && new Date(sub.expiresAt).getTime() > Date.now();
+    return { active: isActive };
+  });
+
   app.get('/v1/billing/plans', async () => {
     const rows = await db
       .select()
