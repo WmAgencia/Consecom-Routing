@@ -8,7 +8,7 @@ const PLANS = [
     name: 'Ilimitado 24h',
     duration: '24 horas',
     price: 25,
-    rate: '30 req/min',
+    rate: 'Ilimitado em tudo',
     featured: false,
     blurb: 'Pra experimentar um projeto novo ou uma demo.',
   },
@@ -17,7 +17,7 @@ const PLANS = [
     name: 'Ilimitado 3 dias',
     duration: '3 dias',
     price: 49.9,
-    rate: '60 req/min',
+    rate: 'Ilimitado em tudo',
     featured: false,
     blurb: 'Um fim de semana inteiro de código assistido.',
   },
@@ -26,7 +26,7 @@ const PLANS = [
     name: 'Ilimitado 7 dias',
     duration: '7 dias',
     price: 109.9,
-    rate: '100 req/min',
+    rate: 'Ilimitado em tudo',
     featured: true,
     blurb: 'Destravar um projeto grande. Sprint de uma semana.',
   },
@@ -35,7 +35,7 @@ const PLANS = [
     name: 'Ilimitado 30 dias',
     duration: '30 dias',
     price: 299.9,
-    rate: '200 req/min',
+    rate: 'Ilimitado em tudo',
     featured: false,
     blurb: 'Mês inteiro. Equipes pequenas. Renovação mensal.',
   },
@@ -77,7 +77,7 @@ export function PricingCards() {
             </li>
             <li className="flex items-start gap-2">
               <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-brasa-500" />
-              <span>{p.rate} — sustenta código pesado</span>
+              <span>{p.rate}</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-brasa-500" />
@@ -86,6 +86,10 @@ export function PricingCards() {
             <li className="flex items-start gap-2">
               <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-brasa-500" />
               <span>1 key pessoal, gerada na ativação</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-brasa-500" />
+              <span>Acesso ao grupo de membros no WhatsApp</span>
             </li>
           </ul>
           <p className="mt-5 text-xs text-fg-muted">{p.blurb}</p>
