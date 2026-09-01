@@ -1,6 +1,7 @@
 import { requireSession, apiFetch } from '@/lib/api';
 import type { Plan, Subscription } from '@consecom/shared';
 import { CheckoutButton } from './checkout-button';
+import { WhatsAppGroupCard } from '@/app/_components/whatsapp-group-card';
 
 function formatPlanDuration(hours: number): string {
   if (hours < 24) return `${hours}h`;
@@ -101,6 +102,8 @@ export default async function BillingPage() {
               Planos atuais são <strong>ilimitados</strong> durante o período contratado — o contador acima mede requisições, não créditos.
             </p>
           </div>
+
+          <WhatsAppGroupCard active={sub.subscription.status === 'active'} />
         </div>
       ) : (
         <div className="mt-8 space-y-6">

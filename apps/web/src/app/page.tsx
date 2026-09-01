@@ -150,6 +150,29 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Comunidade (grupo membros) */}
+      <section className="border-t border-fg-muted/10 bg-bg-subtle/40 py-24">
+        <div className="mx-auto max-w-3xl px-6 text-center">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-success/40 bg-success/10 px-3 py-1 text-xs font-medium text-success">
+            <span className="h-1.5 w-1.5 rounded-full bg-success" />
+            exclusivo para assinantes
+          </div>
+          <h2 className="font-serif text-4xl tracking-tight md:text-5xl">
+            Entre no grupo de{' '}
+            <em className="text-brasa-500">membros</em>
+          </h2>
+          <p className="mt-4 text-lg text-fg-muted">
+            Avisos de manutenção, novos modelos, dicas de uso e troca direta
+            com a equipe. Acesso restrito a quem tem assinatura ativa.
+          </p>
+          <div className="mt-8 flex justify-center">
+            <Link href="/comunidade" className="btn-brasa text-base">
+              Ver comunidade
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <footer className="border-t border-fg-muted/10 py-8 text-center text-xs text-fg-muted">
         © Consecom ·{' '}
         <code className="font-mono">POST /v1/messages</code> · Anthropic-compatible
