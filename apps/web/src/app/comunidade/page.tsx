@@ -22,14 +22,31 @@ async function fetchSubscription(): Promise<boolean> {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) return false;
 
+  // Try the dedicated active endpoint first (when supported).
   try {
     const res = await fetch(`${API_BASE}/v1/billing/active`, {
       headers: { cookie: `${SESSION_COOKIE}=${token}` },
       cache: 'no-store',
     });
+    if (res.ok) {
+      const data = (await res.json()) as { active: boolean };
+      return data.active === true;
+    }
+  } catch {
+    /* fall through */
+  }
+
+  // Fallback: infer active subscription from usage history.
+  // If a user has usage records, they're using the API, which requires an
+  // active subscription. This works around the /v1/billing/plan 404.
+  try {
+    const res = await fetch(`${API_BASE}/v1/usage?limit=1`, {
+      headers: { cookie: `${SESSION_COOKIE}=${token}` },
+      cache: 'no-store',
+    });
     if (!res.ok) return false;
-    const data = (await res.json()) as { active: boolean };
-    return data.active === true;
+    const data = (await res.json()) as { data: unknown[] };
+    return Array.isArray(data.data) && data.data.length > 0;
   } catch {
     return false;
   }
