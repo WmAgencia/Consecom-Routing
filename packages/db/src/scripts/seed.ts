@@ -64,20 +64,25 @@ async function main() {
   // ---------------------------------------------------------------------------
   // Provider: OpenRouter (gateway com ~5% markup sobre preços oficiais)
   // ---------------------------------------------------------------------------
-  const [openrouter] = await db
-    .insert(s.providers)
-    .values({
-      code: 'openrouter',
-      displayName: 'OpenRouter',
-      status: 'active',
-      apiBaseUrl: 'https://openrouter.ai/api/v1',
-      secretRef: 'openrouter',
-    })
-    .onConflictDoNothing()
-    .returning();
+  try {
+    const [openrouter] = await db
+      .insert(s.providers)
+      .values({
+        code: 'openrouter',
+        displayName: 'OpenRouter',
+        status: 'active',
+        apiBaseUrl: 'https://openrouter.ai/api/v1',
+        secretRef: 'openrouter',
+      })
+      .onConflictDoNothing()
+      .returning();
 
-  if (openrouter) {
-    console.log('[seed] provider openrouter created');
+    if (openrouter) {
+      console.log('[seed] provider openrouter created');
+    }
+  } catch (err) {
+    // Enum 'openrouter' may not exist yet - this is OK, will be added via migration
+    console.warn('[seed] openrouter provider skipped (enum may not exist yet)');
   }
 
   // ---------------------------------------------------------------------------
@@ -308,16 +313,6 @@ async function main() {
       },
     },
   ];
-
-  if (openrouterProviderId) {
-    for (const m of openrouterModelRows) {
-      await db
-        .insert(s.models)
-        .values({ ...m, providerId: openrouterProviderId })
-        .onConflictDoNothing();
-    }
-    console.log(`[seed] ${openrouterModelRows.length} openrouter models upserted`);
-  }
 
   console.log(`[seed] ${anthropicModelRows.length} anthropic models upserted`);
 

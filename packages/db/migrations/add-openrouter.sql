@@ -1,6 +1,18 @@
 -- Script direto pra inserir OpenRouter provider e modelos
 -- NÃO precisa do runtime TypeScript/Drizzle
 
+-- 0. Adicionar 'openrouter' ao enum provider_code (se ainda não existir)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type t
+    JOIN pg_enum e ON t.oid = e.enumtypid
+    WHERE t.typname = 'provider_code' AND e.enumlabel = 'openrouter'
+  ) THEN
+    ALTER TYPE provider_code ADD VALUE 'openrouter';
+  END IF;
+END $$;
+
 -- 1. Inserir OpenRouter provider
 INSERT INTO providers (id, code, display_name, status, api_base_url, secret_ref, created_at, updated_at)
 VALUES (
