@@ -1,10 +1,6 @@
 {
   "build": {
-    "builder": "NIXPACKS",
-    "nixpacks": {
-      "planFile": "./railway.nixpacks.json",
-      "pkgs": []
-    }
+    "builder": "DOCKERFILE"
   },
   "deploy": {
     "numReplicas": 1,
