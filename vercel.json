@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm install && pnpm turbo run build",
-  "installCommand": "pnpm install",
-  "framework": null
+  "framework": null,
+  "buildCommand": "pnpm install && pnpm turbo run build --filter=@consecom/web",
+  "installCommand": "pnpm install"
 }

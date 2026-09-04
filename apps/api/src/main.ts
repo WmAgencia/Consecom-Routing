@@ -16,6 +16,7 @@ import { registerUsageRoutes } from './routes/v1/usage.js';
 import { registerBillingRoutes, registerStripeWebhook } from './routes/v1/billing.js';
 import { registerAdminAuthRoutes } from './routes/admin/auth.js';
 import { registerAdminApi } from './routes/admin/api.js';
+import { registerSetupRoutes } from './routes/setup.js';
 import { errorHandler } from './lib/errors.js';
 import { requestContext } from './lib/context.js';
 import { InMemoryRateLimiter } from './services/rate-limit.js';
@@ -89,6 +90,7 @@ export async function buildApp(deps?: Partial<AppDeps>): Promise<FastifyInstance
 
   // Public
   await app.register(registerHealthRoutes);
+  await app.register(registerSetupRoutes);
   await app.register(registerAuthRoutes, { prefix: '/v1/auth' });
   await app.register(registerChatRoutes, { prefix: '/v1' });
   await app.register(registerModelsRoutes, { prefix: '/v1' });
