@@ -1,5 +1,6 @@
 {
-  "framework": null,
-  "buildCommand": "pnpm install && pnpm turbo run build --filter=@consecom/web",
-  "installCommand": "pnpm install"
+  "framework": "nextjs",
+  "buildCommand": "pnpm turbo run build --filter=@consecom/web",
+  "installCommand": "pnpm install",
+  "outputDirectory": ".next"
 }

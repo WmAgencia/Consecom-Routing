@@ -2,7 +2,8 @@
   "build": {
     "builder": "NIXPACKS",
     "nixpacks": {
-      "planFile": "./railway.nixpacks.json"
+      "planFile": "./railway.nixpacks.json",
+      "pkgs": []
     }
   },
   "deploy": {

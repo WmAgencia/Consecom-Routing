@@ -87,4 +87,12 @@ export function registerSetupRoutes(app: FastifyInstance) {
       initialized: users.length > 0,
     });
   });
+
+  // GET /setup/users - List all users (dev only)
+  app.get('/setup/users', async (req: FastifyRequest, reply: FastifyReply) => {
+    const users = await app.db.query.users.findMany({
+      columns: { id: true, email: true, name: true, role: true, status: true, createdAt: true },
+    });
+    return reply.send({ users });
+  });
 }
