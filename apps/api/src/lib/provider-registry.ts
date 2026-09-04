@@ -4,6 +4,8 @@ import * as s from '@consecom/db';
 import type { ProviderAdapter } from '@consecom/shared';
 import { config } from '@consecom/config';
 import { AnthropicAdapter } from '../providers/anthropic/adapter.js';
+import { OpenRouterAdapter } from '../providers/openrouter/adapter.js';
+import { PuterAdapter } from '../providers/puter/adapter.js';
 
 /**
  * ProviderRegistry — owns the adapter instances.
@@ -14,27 +16,42 @@ export class ProviderRegistry {
   private adapters = new Map<string, ProviderAdapter>();
 
   constructor(private db: Db) {
-    // The Anthropic adapter uses ANTHROPIC_BASE_URL from env (defaults to
-    // the official api.anthropic.com). The API key, however, is read from
-    // the encrypted `provider_secrets` table so the front-end never sees it.
+    // Anthropic: uses ANTHROPIC_BASE_URL from env (defaults to api.anthropic.com).
+    // The API key is read from the encrypted `provider_secrets` table.
     this.adapters.set(
       'anthropic',
       new AnthropicAdapter(process.env.ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com'),
     );
+
+    // OpenRouter: OpenAI-compatible gateway with ~5% markup.
+    this.adapters.set(
+      'openrouter',
+      new OpenRouterAdapter(
+        process.env.OPENROUTER_BASE_URL ?? 'https://openrouter.ai/api/v1',
+      ),
+    );
+
+    // Puter: User-Pays model (each user pays from their own Puter account).
+    this.adapters.set(
+      'puter',
+      new PuterAdapter(process.env.PUTER_API_BASE_URL ?? 'https://api.puter.com'),
+    );
   }
 
-  get(code: 'anthropic' | 'openai' | 'google' | 'groq'): ProviderAdapter {
+  get(code: 'anthropic' | 'openrouter' | 'openai' | 'google' | 'groq' | 'puter'): ProviderAdapter {
     const a = this.adapters.get(code);
     if (!a) throw new Error(`provider not registered: ${code}`);
     return a;
   }
 
   /** Read and decrypt the provider's API key. Called once per request. */
-  async getApiKey(providerCode: string): Promise<string> {
+  async getApiKey(
+    providerCode: 'anthropic' | 'openrouter' | 'openai' | 'google' | 'groq' | 'puter',
+  ): Promise<string> {
     const [provider] = await this.db
       .select()
       .from(s.providers)
-      .where(eq(s.providers.code, providerCode as 'anthropic' | 'openai' | 'google' | 'groq'))
+      .where(eq(s.providers.code, providerCode as 'anthropic' | 'openrouter' | 'openai' | 'google' | 'groq' | 'puter'))
       .limit(1);
     if (!provider) throw new Error(`provider not found: ${providerCode}`);
 
@@ -56,6 +73,16 @@ export class ProviderRegistry {
         throw new Error('ANTHROPIC_API_KEY is required when no provider_secret is stored');
       }
       return process.env.ANTHROPIC_API_KEY ?? '';
+    }
+    if (providerCode === 'openrouter') {
+      const key = process.env.OPENROUTER_API_KEY;
+      if (!key) throw new Error('OPENROUTER_API_KEY is required when no provider_secret is stored');
+      return key;
+    }
+    if (providerCode === 'puter') {
+      const key = process.env.PUTER_AUTH_TOKEN;
+      if (!key) throw new Error('PUTER_AUTH_TOKEN is required when no provider_secret is stored');
+      return key;
     }
 
     throw new Error(`no api key configured for provider ${providerCode}`);

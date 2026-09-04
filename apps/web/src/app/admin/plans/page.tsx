@@ -1,89 +1,78 @@
-import { cookies } from 'next/headers';
-import { requireAdmin } from '../_lib';
+import { apiFetch } from '@/lib/api';
+import { TogglePlanButton } from './_components/toggle-plan-button';
 
-const ADMIN_COOKIE = '__consecom_admin';
-
-interface PlanRow {
+interface Plan {
   id: string;
   code: string;
   displayName: string;
   priceCents: number;
-  priceDisplay: string;
   durationHours: number;
-  durationDays: number;
   rateLimitPerMin: number;
   modelsAllowed: string[];
   active: boolean;
 }
 
-async function adminFetch<T>(path: string): Promise<T> {
-  const cookieStore = await cookies();
-  const cookie = cookieStore.get(ADMIN_COOKIE)?.value ?? '';
-  const base = process.env.PUBLIC_API_URL ?? 'http://localhost:3001';
-  const res = await fetch(`${base}${path}`, {
-    headers: { cookie: `${ADMIN_COOKIE}=${cookie}` },
-    cache: 'no-store',
-  });
-  if (!res.ok) throw new Error(`API ${res.status}`);
-  return res.json() as Promise<T>;
-}
-
-export default async function AdminPlans() {
-  await requireAdmin();
-  const data = await adminFetch<{ data: PlanRow[] }>('/v1/admin/plans');
-
-  const fmt = (cents: number) =>
-    cents === 0 ? 'Grátis' : `R$ ${(cents / 100).toFixed(2).replace('.', ',')}`;
+export default async function AdminPlansPage() {
+  let plans: Plan[] = [];
+  try {
+    const res = await apiFetch<{ data: Plan[] }>('/v1/admin/plans');
+    plans = res.data;
+  } catch {
+    plans = [];
+  }
 
   return (
-    <div className="px-6 py-8 md:px-10">
-      <h1 className="text-2xl font-semibold">Planos</h1>
-      <p className="mt-1 text-sm text-fg-muted">
-        {data.data.length} {data.data.length === 1 ? 'plano cadastrado' : 'planos cadastrados'}
-      </p>
+    <div className="max-w-4xl">
+      <header className="mb-8">
+        <h1 className="font-serif text-3xl tracking-tight">Planos</h1>
+        <p className="mt-1 text-sm text-fg-muted">
+          {plans.length} plano{plans.length !== 1 ? 's' : ''} cadastrado{plans.length !== 1 ? 's' : ''}
+        </p>
+      </header>
 
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {data.data.map((plan) => (
+      <div className="grid gap-4 sm:grid-cols-2">
+        {plans.map((p) => (
           <div
-            key={plan.id}
-            className={`rounded-lg border bg-bg-panel p-5 ${
-              plan.active ? 'border-fg-muted/15' : 'border-danger/40 opacity-60'
-            }`}
+            key={p.id}
+            className="rounded-xl border border-fg-muted/15 bg-bg-panel p-6"
           >
             <div className="flex items-start justify-between">
               <div>
-                <div className="font-mono text-xs uppercase text-fg-muted">{plan.code}</div>
-                <div className="mt-1 text-lg font-semibold">{plan.displayName}</div>
+                <div className="font-serif text-xl">{p.displayName}</div>
+                <div className="font-mono text-xs text-fg-muted">{p.code}</div>
               </div>
-              <span
-                className={`rounded px-2 py-0.5 text-xs ${
-                  plan.active
-                    ? 'bg-success/15 text-success'
-                    : 'bg-danger/15 text-danger'
-                }`}
-              >
-                {plan.active ? 'Ativo' : 'Inativo'}
-              </span>
+              <TogglePlanButton planId={p.id} active={p.active} />
             </div>
-            <div className="mt-4 font-mono text-2xl">{fmt(plan.priceCents)}</div>
-            <div className="mt-1 text-xs text-fg-muted">
-              {plan.durationDays === 1 ? '24 horas' : `${plan.durationDays} dias`} • {plan.rateLimitPerMin} req/min
+
+            <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <div className="text-xs uppercase text-fg-muted">Preço</div>
+                <div className="font-mono">R$ {(p.priceCents / 100).toFixed(2)}</div>
+              </div>
+              <div>
+                <div className="text-xs uppercase text-fg-muted">Duração</div>
+                <div className="font-mono">{p.durationHours}h</div>
+              </div>
+              <div>
+                <div className="text-xs uppercase text-fg-muted">Rate Limit</div>
+                <div className="font-mono">{p.rateLimitPerMin}/min</div>
+              </div>
+              <div>
+                <div className="text-xs uppercase text-fg-muted">Modelos</div>
+                <div className="font-mono">{p.modelsAllowed.length}</div>
+              </div>
             </div>
-            <div className="mt-3 flex flex-wrap gap-1">
-              {plan.modelsAllowed.slice(0, 4).map((m) => (
-                <span
-                  key={m}
-                  className="rounded bg-bg-subtle px-1.5 py-0.5 font-mono text-[10px] text-fg-muted"
-                >
-                  {m.replace('claude-', '')}
-                </span>
-              ))}
-              {plan.modelsAllowed.length > 4 && (
-                <span className="text-[10px] text-fg-muted">
-                  +{plan.modelsAllowed.length - 4}
-                </span>
-              )}
-            </div>
+
+            <details className="mt-3">
+              <summary className="cursor-pointer text-xs text-fg-muted hover:text-fg">
+                Ver modelos permitidos
+              </summary>
+              <ul className="mt-2 space-y-1 font-mono text-xs text-fg-muted">
+                {p.modelsAllowed.map((m) => (
+                  <li key={m}>· {m}</li>
+                ))}
+              </ul>
+            </details>
           </div>
         ))}
       </div>

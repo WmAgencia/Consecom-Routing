@@ -1,20 +1,18 @@
 import { randomUUID } from 'node:crypto';
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { eq } from 'drizzle-orm';
 import {
   ChatCompletionRequestSchema,
   fromOpenAI,
   toOpenAI,
   errors,
+  estimateMaxCostCents,
   type RateLimiterPort,
 } from '@consecom/shared';
-import * as s from '@consecom/db';
-import { ApiKeyService, extractBearer, toPublic } from '../../services/api-key.js';
+import { ApiKeyService, extractBearer } from '../../services/api-key.js';
 import { SubscriptionService } from '../../services/subscription.js';
 import { CreditService, creditsFromCents, reserveEstimate } from '../../services/credits.js';
 import { UsageService, findModelByCode } from '../../services/usage.js';
 import { ProviderRegistry } from '../../lib/provider-registry.js';
-import { AnthropicAdapter, estimateMaxCostCents } from '../../providers/anthropic/adapter.js';
 
 /**
  * POST /v1/chat/completions — the 12-step pipeline from spec section 9.
@@ -27,7 +25,7 @@ import { AnthropicAdapter, estimateMaxCostCents } from '../../providers/anthropi
  *   6. Rate-limit consume (per api_key)
  *   7. Validate model is allowed on the plan
  *   8. Reserve credits (worst-case estimate, with safety margin)
- *   9. Call provider adapter (Anthropic / Nexxus proxy)
+ *   9. Call provider adapter (Anthropic / OpenRouter / Puter)
  *  10. Record usage event (tokens, cost, latency)
  *  11. Confirm reservation: deduct actual cost, release unused hold
  *  12. Log request + return OpenAI-compatible response
@@ -41,11 +39,6 @@ export async function registerChatRoutes(app: FastifyInstance) {
   const creditService = new CreditService(db);
   const usageService = new UsageService(db);
   const providers = new ProviderRegistry(db);
-
-  // The registry's anthropic provider carries the static model catalog; for
-  // cost estimation we need it on hand. The actual API call resolves through
-  // the adapter so model catalog stays in sync with the proxy.
-  const anthropicAdapter = providers.get('anthropic') as AnthropicAdapter;
 
   const rateLimiter: RateLimiterPort = app.rateLimiter;
 
@@ -136,7 +129,11 @@ export async function registerChatRoutes(app: FastifyInstance) {
     // ---------------------------------------------------------------------
     // Step 8 — reserve credits (worst-case estimate with margin)
     // ---------------------------------------------------------------------
-    const modelDescriptor = anthropicAdapter.listModels().find((m) => m.code === model.code);
+    const adapter = providers.get(model.providerCode as 'anthropic' | 'openrouter' | 'puter');
+    if (!adapter) {
+      throw errors.upstream(`unsupported provider: ${model.providerCode}`);
+    }
+    const modelDescriptor = adapter.listModels().find((m) => m.code === model.code);
     const maxCostCents = estimateMaxCostCents(
       internalReq,
       modelDescriptor?.pricing ?? {
@@ -165,8 +162,8 @@ export async function registerChatRoutes(app: FastifyInstance) {
     let resp;
     let providerError: unknown = null;
     try {
-      const apiKey = await providers.getApiKey('anthropic');
-      resp = await anthropicAdapter.chat(internalReq, {
+      const apiKey = await providers.getApiKey(model.providerCode as 'anthropic' | 'openrouter' | 'puter');
+      resp = await adapter.chat(internalReq, {
         apiKey,
         requestId,
         signal: (req.raw as unknown as { signal?: AbortSignal }).signal,
@@ -218,7 +215,7 @@ export async function registerChatRoutes(app: FastifyInstance) {
       );
     }
 
-    const cost = anthropicAdapter.estimateCost(internalReq, resp);
+    const cost = adapter.estimateCost(internalReq, resp);
     const creditsConsumed = creditsFromCents(cost.totalCostCents);
 
     await creditService.confirm(
@@ -283,7 +280,3 @@ declare module 'fastify' {
 export function _internal() {
   return { apiKeyService: undefined };
 }
-
-// Keep linter happy about `eq` import being used elsewhere via drizzle-orm.
-// The other modules use it directly when joining.
-void eq;

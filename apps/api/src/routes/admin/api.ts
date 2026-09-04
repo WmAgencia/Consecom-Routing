@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { sql, eq, and, desc, gte, lte, count } from 'drizzle-orm';
+import { hash as argonHash } from '@node-rs/argon2';
 import * as s from '@consecom/db';
 import { requireAdmin } from './auth.js';
 
@@ -8,6 +9,23 @@ import { requireAdmin } from './auth.js';
  */
 export async function registerAdminApi(app: FastifyInstance) {
   const db = app.db;
+
+  // GET current admin session info (for layout/auth check)
+  app.get('/v1/admin/me', async (req) => {
+    const claims = await requireAdmin(req);
+    const [user] = await db
+      .select({
+        id: s.users.id,
+        email: s.users.email,
+        name: s.users.name,
+        role: s.users.role,
+      })
+      .from(s.users)
+      .where(eq(s.users.id, claims.sub))
+      .limit(1);
+    if (!user) throw new Error('admin user not found');
+    return { user };
+  });
 
   // Dashboard aggregates
   app.get('/v1/admin/dashboard', async (req) => {
@@ -69,6 +87,104 @@ export async function registerAdminApi(app: FastifyInstance) {
         model: modelMap.get(t.modelId)?.code ?? t.modelId,
         totalTokens: t.total,
       })),
+    };
+  });
+
+  // Create a new customer (admin-only)
+  app.post('/v1/admin/customers', async (req) => {
+    const admin = await requireAdmin(req);
+    const body = (req.body ?? {}) as {
+      email?: string;
+      name?: string;
+      password?: string;
+      planCode?: string;
+    };
+    if (!body.email || !body.name || !body.password) {
+      throw new Error('email, name and password are required');
+    }
+
+    const email = body.email.toLowerCase().trim();
+    const name = body.name.trim();
+    const password = body.password;
+
+    // Check if email already exists
+    const existing = await db
+      .select()
+      .from(s.users)
+      .where(eq(s.users.email, email))
+      .limit(1);
+    if (existing.length > 0) {
+      throw new Error('email already registered');
+    }
+
+    const passwordHash = await argonHash(password);
+
+    // Create user + customer + balance
+    const [user] = await db
+      .insert(s.users)
+      .values({
+        email,
+        passwordHash,
+        name,
+        role: 'customer',
+        status: 'active',
+      })
+      .returning();
+    if (!user) throw new Error('user creation failed');
+
+    await db.insert(s.customers).values({ id: user.id, status: 'active' });
+
+    await db
+      .insert(s.creditBalances)
+      .values({
+        customerId: user.id,
+        creditsAvailable: 0,
+        creditsReserved: 0,
+        creditsUsed: 0,
+      })
+      .onConflictDoNothing();
+
+    // Optionally activate plan right away
+    let activatedSubscription: { subscription: s.Subscription; payment: s.Payment; apiKey?: (s.ApiKey & { key: string }) | undefined } | null = null;
+    if (body.planCode) {
+      const { BillingService } = await import('../../services/billing.js');
+      const billing = new BillingService(db);
+      try {
+        activatedSubscription = await billing.activatePlan(user.id, body.planCode, { gateway: 'manual' });
+      } catch (err) {
+        console.warn('[admin] failed to activate plan during customer creation:', err);
+      }
+    }
+
+    await db.insert(s.auditLogs).values({
+      adminUserId: admin.sub,
+      action: 'customer_create',
+      targetType: 'customer',
+      targetId: user.id,
+      metadata: {
+        adminEmail: admin.email,
+        email,
+        name,
+        planCode: body.planCode ?? null,
+        ...(activatedSubscription?.subscription.id && { subscriptionId: activatedSubscription.subscription.id }),
+      },
+    });
+
+    return {
+      ok: true,
+      customer: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        status: user.status,
+      },
+      activatedSubscription: activatedSubscription
+        ? {
+            subscription: activatedSubscription.subscription,
+            payment: activatedSubscription.payment,
+            apiKey: activatedSubscription.apiKey ?? null,
+          }
+        : null,
     };
   });
 

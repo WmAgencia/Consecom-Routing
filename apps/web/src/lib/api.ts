@@ -47,3 +47,23 @@ export async function requireSession(): Promise<AuthResponse['user']> {
 
 /** Build absolute URL for server actions that fetch the API. */
 export const API_BASE_URL = API_BASE;
+
+/** Ensure the user is logged in as admin; otherwise redirect to /admin/login. */
+export interface AdminSessionUser {
+  id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'superadmin';
+}
+
+export async function requireAdminSession(): Promise<AdminSessionUser> {
+  try {
+    const { user } = await apiFetch<{ user: AdminSessionUser }>('/v1/admin/me');
+    return user;
+  } catch (err) {
+    if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+      redirect('/admin/login');
+    }
+    throw err;
+  }
+}

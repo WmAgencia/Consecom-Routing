@@ -82,8 +82,22 @@ export class UsageService {
   }
 }
 
-/** Quick read of a model's row by code. */
+/** Quick read of a model's row by code, with provider code. */
 export async function findModelByCode(db: Db, code: string) {
-  const [m] = await db.select().from(s.models).where(eq(s.models.code, code)).limit(1);
+  const [m] = await db
+    .select({
+      id: s.models.id,
+      code: s.models.code,
+      displayName: s.models.displayName,
+      providerId: s.models.providerId,
+      providerCode: s.providers.code,
+      inputPricePer1kCents: s.models.inputPricePer1kCents,
+      outputPricePer1kCents: s.models.outputPricePer1kCents,
+      status: s.models.status,
+    })
+    .from(s.models)
+    .innerJoin(s.providers, eq(s.providers.id, s.models.providerId))
+    .where(eq(s.models.code, code))
+    .limit(1);
   return m ?? null;
 }

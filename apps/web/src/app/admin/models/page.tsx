@@ -1,95 +1,73 @@
-import { cookies } from 'next/headers';
-import { requireAdmin } from '../_lib';
+import { apiFetch } from '@/lib/api';
+import { ToggleModelButton } from './_components/toggle-model-button';
 
-const ADMIN_COOKIE = '__consecom_admin';
-
-interface ModelRow {
+interface Model {
   id: string;
   code: string;
   displayName: string;
-  providerId: string;
+  providerCode: string;
   inputPricePer1kCents: number;
   outputPricePer1kCents: number;
-  status: string;
-  capabilities?: {
-    supportsTools?: boolean;
-    supportsVision?: boolean;
-    maxContextTokens?: number;
-  };
+  status: 'active' | 'disabled';
 }
 
-async function adminFetch<T>(path: string): Promise<T> {
-  const cookieStore = await cookies();
-  const cookie = cookieStore.get(ADMIN_COOKIE)?.value ?? '';
-  const base = process.env.PUBLIC_API_URL ?? 'http://localhost:3001';
-  const res = await fetch(`${base}${path}`, {
-    headers: { cookie: `${ADMIN_COOKIE}=${cookie}` },
-    cache: 'no-store',
-  });
-  if (!res.ok) throw new Error(`API ${res.status}`);
-  return res.json() as Promise<T>;
-}
-
-export default async function AdminModels() {
-  await requireAdmin();
-  const data = await adminFetch<{ data: ModelRow[] }>('/v1/admin/models');
+export default async function AdminModelsPage() {
+  let models: Model[] = [];
+  try {
+    const res = await apiFetch<{ data: Model[] }>('/v1/admin/models');
+    models = res.data;
+  } catch {
+    models = [];
+  }
 
   return (
-    <div className="px-6 py-8 md:px-10">
-      <h1 className="text-2xl font-semibold">Modelos</h1>
-      <p className="mt-1 text-sm text-fg-muted">
-        {data.data.length} {data.data.length === 1 ? 'modelo configurado' : 'modelos configurados'}
-      </p>
+    <div className="max-w-5xl">
+      <header className="mb-8">
+        <h1 className="font-serif text-3xl tracking-tight">Modelos</h1>
+        <p className="mt-1 text-sm text-fg-muted">
+          {models.length} modelo{models.length !== 1 ? 's' : ''} cadastrado{models.length !== 1 ? 's' : ''}
+        </p>
+      </header>
 
-      <div className="mt-8 overflow-hidden rounded-lg border border-fg-muted/15">
+      <div className="overflow-hidden rounded-lg border border-fg-muted/15">
         <table className="w-full text-sm">
           <thead className="bg-bg-panel/50 text-left text-xs uppercase text-fg-muted">
             <tr>
+              <th className="px-4 py-3">Provedor</th>
               <th className="px-4 py-3">Modelo</th>
+              <th className="px-4 py-3 text-right">Input/1k</th>
+              <th className="px-4 py-3 text-right">Output/1k</th>
               <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Input / 1k</th>
-              <th className="px-4 py-3">Output / 1k</th>
-              <th className="px-4 py-3">Capacidades</th>
+              <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
           <tbody>
-            {data.data.map((m) => (
+            {models.map((m) => (
               <tr key={m.id} className="border-t border-fg-muted/10">
+                <td className="px-4 py-3 font-mono text-xs">{m.providerCode}</td>
                 <td className="px-4 py-3">
-                  <div className="font-mono text-xs">{m.code}</div>
-                  <div className="mt-0.5 text-fg-muted">{m.displayName}</div>
+                  <div className="font-medium">{m.displayName}</div>
+                  <div className="font-mono text-xs text-fg-muted">{m.code}</div>
+                </td>
+                <td className="px-4 py-3 text-right font-mono text-xs">
+                  ${(m.inputPricePer1kCents / 100).toFixed(2)}
+                </td>
+                <td className="px-4 py-3 text-right font-mono text-xs">
+                  ${(m.outputPricePer1kCents / 100).toFixed(2)}
                 </td>
                 <td className="px-4 py-3">
                   <span
-                    className={`rounded px-2 py-0.5 text-xs ${
+                    className={
                       m.status === 'active'
-                        ? 'bg-success/15 text-success'
-                        : 'bg-danger/15 text-danger'
-                    }`}
+                        ? 'rounded bg-success/15 px-2 py-0.5 text-xs text-success'
+                        : 'rounded bg-fg-muted/15 px-2 py-0.5 text-xs text-fg-muted'
+                    }
                   >
                     {m.status}
                   </span>
                 </td>
-                <td className="px-4 py-3 font-mono">
-                  R$ {(m.inputPricePer1kCents / 100).toFixed(2).replace('.', ',')}
-                </td>
-                <td className="px-4 py-3 font-mono">
-                  R$ {(m.outputPricePer1kCents / 100).toFixed(2).replace('.', ',')}
-                </td>
-                <td className="px-4 py-3 text-xs">
-                  <div className="flex flex-wrap gap-1">
-                    {m.capabilities?.supportsTools && (
-                      <span className="rounded bg-bg-subtle px-1.5 py-0.5">tools</span>
-                    )}
-                    {m.capabilities?.supportsVision && (
-                      <span className="rounded bg-bg-subtle px-1.5 py-0.5">vision</span>
-                    )}
-                    {m.capabilities?.maxContextTokens && (
-                      <span className="rounded bg-bg-subtle px-1.5 py-0.5">
-                        {(m.capabilities.maxContextTokens / 1000).toFixed(0)}k ctx
-                      </span>
-                    )}
-                  </div>
+                <td className="px-4 py-3 text-right">
+                  <ToggleModelButton modelId={m.id} status={m.status} />
                 </td>
               </tr>
             ))}

@@ -62,6 +62,25 @@ async function main() {
   }
 
   // ---------------------------------------------------------------------------
+  // Provider: OpenRouter (gateway com ~5% markup sobre preços oficiais)
+  // ---------------------------------------------------------------------------
+  const [openrouter] = await db
+    .insert(s.providers)
+    .values({
+      code: 'openrouter',
+      displayName: 'OpenRouter',
+      status: 'active',
+      apiBaseUrl: 'https://openrouter.ai/api/v1',
+      secretRef: 'openrouter',
+    })
+    .onConflictDoNothing()
+    .returning();
+
+  if (openrouter) {
+    console.log('[seed] provider openrouter created');
+  }
+
+  // ---------------------------------------------------------------------------
   // Provider secret — encrypt the Anthropic API key at rest
   // ---------------------------------------------------------------------------
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
@@ -83,6 +102,30 @@ async function main() {
     }
   } else {
     console.warn('[seed] ANTHROPIC_API_KEY not set — provider secret NOT stored');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Provider secret — encrypt the OpenRouter API key at rest
+  // ---------------------------------------------------------------------------
+  const openrouterKey = process.env.OPENROUTER_API_KEY;
+  if (openrouterKey) {
+    const providerRow = (
+      await db.select().from(s.providers).where(sql`code = 'openrouter'`).limit(1)
+    )[0];
+    if (providerRow) {
+      const encryptedKey = encryptSecret(openrouterKey);
+      await db
+        .insert(s.providerSecrets)
+        .values({
+          providerId: providerRow.id,
+          encryptedKey,
+          keyHint: openrouterKey.slice(-4),
+        })
+        .onConflictDoNothing();
+      console.log(`[seed] openrouter secret stored (hint: ...${openrouterKey.slice(-4)})`);
+    }
+  } else {
+    console.warn('[seed] OPENROUTER_API_KEY not set — provider secret NOT stored');
   }
 
   // ---------------------------------------------------------------------------
@@ -131,21 +174,152 @@ async function main() {
     },
   ];
 
-  const providerId = (
+  const anthropicProviderId = (
     await db.select().from(s.providers).where(sql`code = 'anthropic'`).limit(1)
   )[0]?.id;
 
-  if (!providerId) {
+  if (!anthropicProviderId) {
     throw new Error('Anthropic provider not found after insert');
   }
 
-  for (const m of modelRows) {
+  const openrouterProviderId = (
+    await db.select().from(s.providers).where(sql`code = 'openrouter'`).limit(1)
+  )[0]?.id;
+
+  if (!openrouterProviderId) {
+    console.warn('[seed] OpenRouter provider not found — skipping openrouter models');
+  }
+
+  // Anthropic-direct models (existing models)
+  const anthropicModelRows = [
+    {
+      code: 'claude-sonnet-4-5',
+      displayName: 'Claude Sonnet 4.5',
+      inputPricePer1kCents: 300,
+      outputPricePer1kCents: 1500,
+      status: 'active' as const,
+      capabilities: {
+        maxContextTokens: 200_000,
+        supportsVision: true,
+        supportsTools: true,
+        supportsStreaming: true,
+      },
+    },
+    {
+      code: 'claude-haiku-4-5',
+      displayName: 'Claude Haiku 4.5',
+      inputPricePer1kCents: 100,
+      outputPricePer1kCents: 500,
+      status: 'active' as const,
+      capabilities: {
+        maxContextTokens: 200_000,
+        supportsVision: true,
+        supportsTools: true,
+        supportsStreaming: true,
+      },
+    },
+    {
+      code: 'claude-opus-4-5',
+      displayName: 'Claude Opus 4.5',
+      inputPricePer1kCents: 1500,
+      outputPricePer1kCents: 7500,
+      status: 'disabled' as const,
+      capabilities: {
+        maxContextTokens: 200_000,
+        supportsVision: true,
+        supportsTools: true,
+        supportsStreaming: true,
+      },
+    },
+  ];
+
+  for (const m of anthropicModelRows) {
     await db
       .insert(s.models)
-      .values({ ...m, providerId })
+      .values({ ...m, providerId: anthropicProviderId })
       .onConflictDoNothing();
   }
-  console.log(`[seed] ${modelRows.length} models upserted`);
+
+  // OpenRouter models (verified against openrouter.ai API — Sonnet 5 33% cheaper than direct!)
+  const openrouterModelRows = [
+    {
+      code: 'claude-sonnet-5-openrouter',
+      displayName: 'Claude Sonnet 5 (via OpenRouter)',
+      inputPricePer1kCents: 200, // $2/1M (vs $3 direto)
+      outputPricePer1kCents: 1000, // $10/1M (vs $15 direto)
+      status: 'active' as const,
+      capabilities: {
+        maxContextTokens: 1_000_000,
+        supportsVision: true,
+        supportsTools: true,
+        supportsStreaming: true,
+      },
+    },
+    {
+      code: 'claude-opus-5-openrouter',
+      displayName: 'Claude Opus 5 (via OpenRouter)',
+      inputPricePer1kCents: 500, // $5/1M (vs $5 direto, mesmo preço)
+      outputPricePer1kCents: 2500, // $25/1M (vs $25 direto)
+      status: 'active' as const,
+      capabilities: {
+        maxContextTokens: 1_000_000,
+        supportsVision: true,
+        supportsTools: true,
+        supportsStreaming: true,
+      },
+    },
+    {
+      code: 'claude-haiku-4-5-openrouter',
+      displayName: 'Claude Haiku 4.5 (via OpenRouter)',
+      inputPricePer1kCents: 100, // $1/1M (mesmo preço)
+      outputPricePer1kCents: 500, // $5/1M (mesmo preço)
+      status: 'active' as const,
+      capabilities: {
+        maxContextTokens: 200_000,
+        supportsVision: true,
+        supportsTools: true,
+        supportsStreaming: true,
+      },
+    },
+    {
+      code: 'claude-fable-5-1-openrouter',
+      displayName: 'Claude Fable 5.1 (via OpenRouter)',
+      inputPricePer1kCents: 1000, // $10/1M (vs $10 direto)
+      outputPricePer1kCents: 5000, // $50/1M (vs $50 direto)
+      status: 'active' as const,
+      capabilities: {
+        maxContextTokens: 1_000_000,
+        supportsVision: true,
+        supportsTools: true,
+        supportsStreaming: true,
+      },
+    },
+    {
+      code: 'claude-opus-4-8-openrouter',
+      displayName: 'Claude Opus 4.8 (via OpenRouter)',
+      inputPricePer1kCents: 500, // $5/1M
+      outputPricePer1kCents: 2500, // $25/1M
+      status: 'active' as const,
+      capabilities: {
+        maxContextTokens: 1_000_000,
+        supportsVision: true,
+        supportsTools: true,
+        supportsStreaming: true,
+      },
+    },
+  ];
+
+  if (openrouterProviderId) {
+    for (const m of openrouterModelRows) {
+      await db
+        .insert(s.models)
+        .values({ ...m, providerId: openrouterProviderId })
+        .onConflictDoNothing();
+    }
+    console.log(`[seed] ${openrouterModelRows.length} openrouter models upserted`);
+  }
+
+  console.log(`[seed] ${anthropicModelRows.length} anthropic models upserted`);
 
   // ---------------------------------------------------------------------------
   // Plans — time-based, unlimited usage during the contracted period.
@@ -159,7 +333,12 @@ async function main() {
       priceCents: 2500,
       durationHours: 24,
       rateLimitPerMin: 30,
-      modelsAllowed: ['claude-sonnet-4-5', 'claude-haiku-4-5'],
+      modelsAllowed: [
+        'claude-sonnet-4-5',
+        'claude-haiku-4-5',
+        'claude-sonnet-5-openrouter',
+        'claude-haiku-4-5-openrouter',
+      ],
       active: true,
     },
     {
@@ -168,7 +347,13 @@ async function main() {
       priceCents: 4990,
       durationHours: 72,
       rateLimitPerMin: 60,
-      modelsAllowed: ['claude-sonnet-4-5', 'claude-haiku-4-5'],
+      modelsAllowed: [
+        'claude-sonnet-4-5',
+        'claude-haiku-4-5',
+        'claude-sonnet-5-openrouter',
+        'claude-opus-5-openrouter',
+        'claude-haiku-4-5-openrouter',
+      ],
       active: true,
     },
     {
@@ -177,7 +362,15 @@ async function main() {
       priceCents: 10990,
       durationHours: 168,
       rateLimitPerMin: 100,
-      modelsAllowed: ['claude-sonnet-4-5', 'claude-haiku-4-5'],
+      modelsAllowed: [
+        'claude-sonnet-4-5',
+        'claude-haiku-4-5',
+        'claude-sonnet-5-openrouter',
+        'claude-opus-5-openrouter',
+        'claude-haiku-4-5-openrouter',
+        'claude-fable-5-1-openrouter',
+        'claude-opus-4-8-openrouter',
+      ],
       active: true,
     },
     {
@@ -186,7 +379,15 @@ async function main() {
       priceCents: 29990,
       durationHours: 720,
       rateLimitPerMin: 200,
-      modelsAllowed: ['claude-sonnet-4-5', 'claude-haiku-4-5'],
+      modelsAllowed: [
+        'claude-sonnet-4-5',
+        'claude-haiku-4-5',
+        'claude-sonnet-5-openrouter',
+        'claude-opus-5-openrouter',
+        'claude-haiku-4-5-openrouter',
+        'claude-fable-5-1-openrouter',
+        'claude-opus-4-8-openrouter',
+      ],
       active: true,
     },
     {
@@ -195,8 +396,13 @@ async function main() {
       priceCents: 0,
       durationHours: 72,
       rateLimitPerMin: 10,
-      modelsAllowed: ['claude-sonnet-4-5', 'claude-haiku-4-5'],
-      active: false, // MVP placeholder; not for sale
+      modelsAllowed: [
+        'claude-sonnet-4-5',
+        'claude-haiku-4-5',
+        'claude-sonnet-5-openrouter',
+        'claude-haiku-4-5-openrouter',
+      ],
+      active: false,
     },
   ];
   for (const p of allPlans) {
