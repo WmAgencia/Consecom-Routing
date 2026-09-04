@@ -1,79 +1,76 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.PUBLIC_API_URL || 'http://localhost:3001';
+// Em produção, usa API_BASE_URL do ambiente
+// Em desenvolvimento, usa localhost
+const getApiBase = () => {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  // Para desenvolvimento local
+  return 'http://localhost:3001';
+};
 
-// Determina se deve usar proxy local ou API direta
-const USE_LOCAL_PROXY = !process.env.NEXT_PUBLIC_API_URL;
-
-async function handleRequest(request: NextRequest, pathSegments: string[]) {
-  const url = `${API_BASE}/${pathSegments.join('/')}`;
-  const searchParams = request.nextUrl.search;
+export async function GET(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  const { path } = await params;
+  const apiBase = getApiBase();
+  const url = `${apiBase}/${path.join('/')}${request.nextUrl.search}`;
 
   try {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
+    const headers: Record<string, string> = {};
+    const cookie = request.headers.get('cookie');
+    if (cookie) headers['Cookie'] = cookie;
 
-    // Passa cookies para autenticação
-    const cookieHeader = request.headers.get('cookie');
-    if (cookieHeader) {
-      headers['Cookie'] = cookieHeader;
-    }
-
-    // Pega body se houver
-    let body: string | undefined;
-    if (request.method !== 'GET' && request.method !== 'HEAD') {
-      body = await request.text();
-    }
-
-    const response = await fetch(`${url}${searchParams}`, {
-      method: request.method,
+    const response = await fetch(url, {
+      method: 'GET',
       headers,
-      body: body ?? null,
       cache: 'no-store',
     });
 
     const data = await response.text();
-    const newResponse = new NextResponse(data, {
-      status: response.status,
-      headers: {
-        'Content-Type': response.headers.get('Content-Type') || 'application/json',
-      },
+    const nextResponse = new NextResponse(data, { status: response.status });
+
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() === 'set-cookie') {
+        nextResponse.headers.set(key, value);
+      }
     });
 
-    // Passa cookies de resposta
-    const setCookie = response.headers.get('set-cookie');
-    if (setCookie) {
-      newResponse.headers.set('set-cookie', setCookie);
-    }
-
-    return newResponse;
-  } catch (error) {
-    return NextResponse.json({ error: 'API unavailable', details: String(error) }, { status: 503 });
+    return nextResponse;
+  } catch {
+    return NextResponse.json({ error: 'API unavailable' }, { status: 503 });
   }
-}
-
-export async function GET(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
-  const { path } = await params;
-  return handleRequest(request, path);
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
-  return handleRequest(request, path);
-}
+  const apiBase = getApiBase();
+  const url = `${apiBase}/${path.join('/')}${request.nextUrl.search}`;
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
-  const { path } = await params;
-  return handleRequest(request, path);
-}
+  try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const cookie = request.headers.get('cookie');
+    if (cookie) headers['Cookie'] = cookie;
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
-  const { path } = await params;
-  return handleRequest(request, path);
-}
+    const body = await request.text();
 
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
-  const { path } = await params;
-  return handleRequest(request, path);
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body,
+      cache: 'no-store',
+    });
+
+    const data = await response.text();
+    const nextResponse = new NextResponse(data, { status: response.status });
+
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() === 'set-cookie') {
+        nextResponse.headers.set(key, value);
+      }
+    });
+
+    return nextResponse;
+  } catch {
+    return NextResponse.json({ error: 'API unavailable' }, { status: 503 });
+  }
 }
