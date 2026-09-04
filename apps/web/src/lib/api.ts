@@ -2,6 +2,8 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import type { AuthResponse } from '@consecom/shared';
 
+// Usa proxy local em produção Vercel, ou API direta em desenvolvimento
+const USE_PROXY = process.env.NODE_ENV === 'production';
 const API_BASE = process.env.PUBLIC_API_URL ?? 'http://localhost:3001';
 
 /** Server-side fetch helper. Passes cookies to the API. */
@@ -11,7 +13,11 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     .getAll()
     .map((c) => `${c.name}=${c.value}`)
     .join('; ');
-  const res = await fetch(`${API_BASE}${path}`, {
+
+  // Em produção usa proxy local, em dev usa API direta
+  const url = USE_PROXY ? path : `${API_BASE}${path}`;
+
+  const res = await fetch(url, {
     ...init,
     headers: {
       'Content-Type': 'application/json',

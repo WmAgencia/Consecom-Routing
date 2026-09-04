@@ -1,0 +1,22 @@
+{
+  "name": "consecom-api",
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/api/dist/main.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/v1/(.*)",
+      "dest": "apps/api/dist/main.js"
+    },
+    {
+      "src": "/health",
+      "dest": "apps/api/dist/main.js"
+    }
+  ],
+  "installCommand": "pnpm install",
+  "buildCommand": "cd apps/api && pnpm install && pnpm build"
+}

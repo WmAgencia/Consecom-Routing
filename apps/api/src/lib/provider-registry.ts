@@ -6,6 +6,7 @@ import { config } from '@consecom/config';
 import { AnthropicAdapter } from '../providers/anthropic/adapter.js';
 import { OpenRouterAdapter } from '../providers/openrouter/adapter.js';
 import { PuterAdapter } from '../providers/puter/adapter.js';
+import { PoyoAdapter } from '../providers/poyo/adapter.js';
 
 /**
  * ProviderRegistry — owns the adapter instances.
@@ -36,9 +37,15 @@ export class ProviderRegistry {
       'puter',
       new PuterAdapter(process.env.PUTER_API_BASE_URL ?? 'https://api.puter.com'),
     );
+
+    // PoyoAPI: Third-party provider with 60% discount on Claude Opus 5.
+    this.adapters.set(
+      'poyo',
+      new PoyoAdapter(process.env.POYO_API_BASE_URL ?? 'https://api.poyo.ai'),
+    );
   }
 
-  get(code: 'anthropic' | 'openrouter' | 'openai' | 'google' | 'groq' | 'puter'): ProviderAdapter {
+  get(code: 'anthropic' | 'openrouter' | 'openai' | 'google' | 'groq' | 'puter' | 'poyo'): ProviderAdapter {
     const a = this.adapters.get(code);
     if (!a) throw new Error(`provider not registered: ${code}`);
     return a;
@@ -46,12 +53,12 @@ export class ProviderRegistry {
 
   /** Read and decrypt the provider's API key. Called once per request. */
   async getApiKey(
-    providerCode: 'anthropic' | 'openrouter' | 'openai' | 'google' | 'groq' | 'puter',
+    providerCode: 'anthropic' | 'openrouter' | 'openai' | 'google' | 'groq' | 'puter' | 'poyo',
   ): Promise<string> {
     const [provider] = await this.db
       .select()
       .from(s.providers)
-      .where(eq(s.providers.code, providerCode as 'anthropic' | 'openrouter' | 'openai' | 'google' | 'groq' | 'puter'))
+      .where(eq(s.providers.code, providerCode as 'anthropic' | 'openrouter' | 'openai' | 'google' | 'groq' | 'puter' | 'poyo'))
       .limit(1);
     if (!provider) throw new Error(`provider not found: ${providerCode}`);
 
@@ -82,6 +89,11 @@ export class ProviderRegistry {
     if (providerCode === 'puter') {
       const key = process.env.PUTER_AUTH_TOKEN;
       if (!key) throw new Error('PUTER_AUTH_TOKEN is required when no provider_secret is stored');
+      return key;
+    }
+    if (providerCode === 'poyo') {
+      const key = process.env.POYO_API_KEY;
+      if (!key) throw new Error('POYO_API_KEY is required when no provider_secret is stored');
       return key;
     }
 

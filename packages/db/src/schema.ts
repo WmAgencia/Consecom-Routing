@@ -52,6 +52,9 @@ export const providerCodeEnum = pgEnum('provider_code', [
   'openai',
   'google',
   'groq',
+  'openrouter',
+  'puter',
+  'poyo',
 ]);
 export const providerStatusEnum = pgEnum('provider_status', ['active', 'disabled', 'error']);
 export const modelStatusEnum = pgEnum('model_status', ['active', 'disabled']);

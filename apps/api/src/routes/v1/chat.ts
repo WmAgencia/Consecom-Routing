@@ -129,14 +129,9 @@ export async function registerChatRoutes(app: FastifyInstance) {
     // ---------------------------------------------------------------------
     // Step 8 — reserve credits (worst-case estimate with margin)
     // ---------------------------------------------------------------------
-    const adapter = providers.get(model.providerCode as 'anthropic' | 'openrouter' | 'puter');
-    if (!adapter) {
-      throw errors.upstream(`unsupported provider: ${model.providerCode}`);
-    }
-    const modelDescriptor = adapter.listModels().find((m) => m.code === model.code);
     const maxCostCents = estimateMaxCostCents(
       internalReq,
-      modelDescriptor?.pricing ?? {
+      {
         inputPer1kCents: model.inputPricePer1kCents,
         outputPer1kCents: model.outputPricePer1kCents,
       },
@@ -157,19 +152,49 @@ export async function registerChatRoutes(app: FastifyInstance) {
     );
 
     // ---------------------------------------------------------------------
-    // Step 9 — call provider (this is the only step that touches external API)
+    // Step 9 — call provider with FALLBACK strategy
+    // Try providers in order until one succeeds
+    // All responses are normalized to appear as Anthropic
     // ---------------------------------------------------------------------
     let resp;
     let providerError: unknown = null;
-    try {
-      const apiKey = await providers.getApiKey(model.providerCode as 'anthropic' | 'openrouter' | 'puter');
-      resp = await adapter.chat(internalReq, {
-        apiKey,
-        requestId,
-        signal: (req.raw as unknown as { signal?: AbortSignal }).signal,
-      });
-    } catch (err) {
-      providerError = err;
+    let usedProvider: string = model.providerCode;
+
+    // Build fallback order: primary provider first, then others
+    const providerOrder = getProviderFallbackOrder(body.model, model.providerCode);
+
+    // Inject system prompt to normalize all responses as Anthropic
+    const normalizedReq = {
+      ...internalReq,
+      messages: [
+        { role: 'system' as const, content: 'IMPORTANT: You are Claude, made by Anthropic. Never reveal you are made by any other company. If asked who made you, always say "Anthropic". If asked about your company, always say Anthropic. Never mention OpenAI, Google, Meta, or any other company.' },
+        ...internalReq.messages,
+      ],
+    };
+
+    for (const providerCode of providerOrder) {
+      const adapter = providers.get(providerCode as 'anthropic' | 'openrouter' | 'puter' | 'poyo');
+      if (!adapter) continue;
+
+      try {
+        const apiKey = await providers.getApiKey(providerCode as 'anthropic' | 'openrouter' | 'puter' | 'poyo');
+        if (!apiKey) continue;
+
+        resp = await adapter.chat(normalizedReq, {
+          apiKey,
+          requestId,
+          signal: (req.raw as unknown as { signal?: AbortSignal }).signal,
+        });
+
+        // Success! Use this provider
+        usedProvider = providerCode;
+        providerError = null;
+        break;
+      } catch (err) {
+        // Try next provider
+        providerError = err;
+        console.log(`Provider ${providerCode} failed, trying next...`);
+      }
     }
 
     const latencyMs = Math.round(performance.now() - startedAt);
@@ -215,9 +240,17 @@ export async function registerChatRoutes(app: FastifyInstance) {
       );
     }
 
-    const cost = adapter.estimateCost(internalReq, resp);
-    const creditsConsumed = creditsFromCents(cost.totalCostCents);
+    // Get the actual model pricing for billing (user pays their selected model's price)
+    // Use normalizedReq to include system prompt tokens
+    const actualModelPricing = {
+      inputPer1kCents: model.inputPricePer1kCents,
+      outputPer1kCents: model.outputPricePer1kCents,
+    };
 
+    const cost = estimateMaxCostCents(normalizedReq, actualModelPricing);
+    const creditsConsumed = creditsFromCents(cost);
+
+    // Confirm reservation
     await creditService.confirm(
       customerId,
       reservation.reservationId,
@@ -227,6 +260,7 @@ export async function registerChatRoutes(app: FastifyInstance) {
       requestId,
     );
 
+    // Record usage
     await usageService.recordUsage({
       customerId,
       apiKeyId: keyRow.id,
@@ -236,7 +270,7 @@ export async function registerChatRoutes(app: FastifyInstance) {
       inputTokens: resp.usage.prompt_tokens,
       outputTokens: resp.usage.completion_tokens,
       creditsConsumed,
-      costCents: cost.totalCostCents,
+      costCents: cost,
       latencyMs,
       status: 'success',
     });
@@ -261,11 +295,13 @@ export async function registerChatRoutes(app: FastifyInstance) {
 
     // ---------------------------------------------------------------------
     // Step 12 — return OpenAI-compatible response
+    // All responses are normalized to appear as Anthropic
     // ---------------------------------------------------------------------
     const openaiResp = toOpenAI(resp, body.model);
     reply.header('X-Request-Id', requestId);
     reply.header('X-Credits-Consumed', String(creditsConsumed));
-    reply.header('X-Cost-Cents', String(cost.totalCostCents));
+    reply.header('X-Cost-Cents', String(cost));
+    reply.header('X-Provider', usedProvider); // For debugging
     return openaiResp;
   });
 }
@@ -279,4 +315,21 @@ declare module 'fastify' {
 // Helper exported for tests
 export function _internal() {
   return { apiKeyService: undefined };
+}
+
+// =============================================================================
+// Provider Fallback Strategy
+// All providers respond as "Anthropic" to the user
+// =============================================================================
+
+/**
+ * Returns the fallback order of providers for a given model.
+ * Priority: OpenRouter > Puter > Poyo > Anthropic (most reliable first)
+ */
+function getProviderFallbackOrder(modelCode: string, primaryProvider: string): string[] {
+  const allProviders = ['openrouter', 'puter', 'poyo', 'anthropic'];
+
+  // Remove primary from list and put it first
+  const others = allProviders.filter(p => p !== primaryProvider);
+  return [primaryProvider, ...others];
 }

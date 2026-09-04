@@ -60,7 +60,7 @@ export interface AdapterContext {
 }
 
 export interface ProviderAdapter {
-  readonly id: 'anthropic' | 'openrouter' | 'openai' | 'google' | 'groq' | 'puter';
+  readonly id: 'anthropic' | 'openrouter' | 'openai' | 'google' | 'groq' | 'puter' | 'poyo';
   readonly displayName: string;
 
   chat(req: ChatRequest, ctx: AdapterContext): Promise<ChatResponse>;

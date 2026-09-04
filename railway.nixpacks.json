@@ -1,0 +1,16 @@
+{
+  "builders": {
+    "name": "nixpacks",
+    "config": {
+      "install": "",
+      "build": "cd apps/api && pnpm install && pnpm build",
+      "start": "cd apps/api && pnpm start"
+    }
+  },
+  "providers": [],
+  "env": {
+    "NODE_ENV": {
+      "value": "production"
+    }
+  }
+}

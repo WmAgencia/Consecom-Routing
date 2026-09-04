@@ -1,0 +1,10 @@
+{
+  "buildCommand": "pnpm install && pnpm turbo run build",
+  "installCommand": "pnpm install",
+  "framework": null,
+  "functions": {
+    "apps/api/dist/main.js": {
+      "runtime": "nodejs20.x"
+    }
+  }
+}
