@@ -1,35 +1,35 @@
 FROM node:20-alpine
 
-# Install pnpm and tsx globally
-RUN npm install -g pnpm@9 tsx@4 2>&1
+# Install pnpm globally
+RUN npm install -g pnpm@9
 
 WORKDIR /app
 
-# Copy dependency files first (cache layer)
+# Copy dependency files first
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY packages/*/package.json ./packages/
 COPY apps/*/package.json ./apps/
 
-# Install all dependencies (tsx is needed at runtime)
-RUN pnpm install --frozen-lockfile 2>&1 | tail -20 && \
-    echo "[install] node_modules size:" && du -sh /app/node_modules 2>&1
+# Install ALL dependencies including tsx (needed at runtime)
+RUN pnpm install --no-frozen-lockfile
+
+# Verify install
+RUN ls /app/node_modules/tsx/dist/cli.mjs && \
+    ls /app/node_modules/.pnpm | head -3 && \
+    echo "[install] ok"
 
 # Copy source
 COPY packages ./packages
 COPY apps ./apps
 COPY tsconfig.base.json ./
 
-# Build packages
-RUN pnpm --filter @consecom/db build 2>&1 || echo "[build] db build skipped" && \
-    pnpm --filter @consecom/shared build 2>&1 || echo "[build] shared build skipped"
-
 WORKDIR /app/apps/api
 
 ENV NODE_ENV=production
 ENV PORT=3001
-ENV PATH="/usr/local/bin:/app/node_modules/.bin:$PATH"
+ENV PATH="/app/node_modules/.bin:/usr/local/bin:$PATH"
 
 EXPOSE 3001
 
-# Run migrations + seed + start via boot.sh
+# Run via boot.sh
 CMD ["sh", "/app/apps/api/boot.sh"]
