@@ -129,8 +129,10 @@ export function registerSetupRoutes(app: FastifyInstance) {
         where: (p, { eq }) => eq(p.code, body.providerCode as any),
       });
       if (!provider) return reply.status(404).send({ error: `Provider ${body.providerCode} not found` });
-      const [model] = await app.db
-        .insert(app.db.schema.models)
+      const schemaAny = (app.db as any).schema ?? app.db;
+const modelsTable = schemaAny.models;
+const [model] = await app.db
+        .insert(modelsTable)
         .values({
           code: body.code,
           displayName: body.displayName,
@@ -141,7 +143,7 @@ export function registerSetupRoutes(app: FastifyInstance) {
           capabilities: { maxContextTokens: 200000, supportsVision: false, supportsTools: true, supportsStreaming: true },
         })
         .onConflictDoUpdate({
-          target: app.db.schema.models.code,
+          target: modelsTable.code,
           set: {
             providerId: provider.id,
             displayName: body.displayName,
