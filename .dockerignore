@@ -1,0 +1,34 @@
+# Exclude all build artifacts and dev caches
+**/dist
+**/.turbo
+**/.next
+**/node_modules
+
+# Source maps
+**/*.map
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Vercel
+.vercel
+
+# Coverage
+coverage
