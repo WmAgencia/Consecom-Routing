@@ -1,12 +1,8 @@
 FROM node:20-alpine
 
 # Install pnpm globally + tsx (needed at runtime to run TS files)
-RUN npm install -g pnpm@9 tsx@4 && \
-    ln -sf /usr/local/lib/node_modules/tsx/dist/cli.mjs /usr/local/bin/tsx-runner.mjs && \
-    echo '#!/bin/sh' > /usr/local/bin/tsx && \
-    echo 'exec node /usr/local/lib/node_modules/tsx/dist/cli.mjs "$@"' >> /usr/local/bin/tsx && \
-    chmod +x /usr/local/bin/tsx && \
-    echo "[setup] tsx installed globally"
+# npm install of tsx creates a working executable at /usr/local/bin/tsx
+RUN npm install -g pnpm@9 tsx@4
 
 WORKDIR /app
 
@@ -16,15 +12,17 @@ COPY packages ./packages
 COPY apps ./apps
 COPY tsconfig.base.json ./
 
-# Install all workspace deps (devDeps included for tsx availability)
-RUN pnpm install --recursive && \
-    echo "[install] pnpm install complete"
+# Install all workspace deps
+RUN pnpm install --recursive
+
+# Verify tsx works
+RUN tsx --version && echo "[install] tsx works"
 
 WORKDIR /app/apps/api
 
 ENV NODE_ENV=production
 ENV PORT=3001
-ENV PATH="/app/node_modules/.bin:/usr/local/bin:$PATH"
+ENV PATH="/usr/local/bin:/app/node_modules/.bin:$PATH"
 
 EXPOSE 3001
 
