@@ -1,100 +1,102 @@
 # Consecom Routing - Credenciais de Produção
 
-> **Status atual (05/09/2026 03:08)**: API 100% funcional. Toda a infraestrutura foi resolvida.
-> Falta apenas: chaves de provedores com saldo para fazer inferência real.
+## Status: ✅ TUDO FUNCIONANDO (05/09/2026 às 10:18 UTC)
+
+Inferência real via OpenRouter confirmada:
+```json
+{
+  "model": "claude-3-haiku",
+  "choices": [{"message": {"content": "OK, eu entendi. Obrigado por me dizer que estou funcionando cor..."}}]
+}
+```
 
 ## URLs
 
 | Endpoint | URL |
 |---|---|
 | **API (Backend)** | `https://api-production-d761c.up.railway.app` |
-| **Domínio Custom (em propagação)** | `https://api.consecom.com.br` |
 | **Painel (Frontend)** | `https://painel.consecom.com.br` |
 
-## Credenciais Admin
+## Admin Master
 
 ```
-URL Painel Admin:  https://painel.consecom.com.br/admin/login
-Email Admin:       admin@consecom.local
-Senha Admin:       ChangeMe123!
+URL:       https://painel.consecom.com.br/admin/login
+Email:     admin@consecom.local
+Senha:     ChangeMe123!
 ```
 
-## Cliente Ilimitado (criado)
+## Cliente Ilimitado
 
 ```
-Email:             wesley@consecom.com.br
-Senha:             Wesley2025!
-Plano:             ENTERPRISE (30 dias, até 2026-10-05)
-Créditos:          10.000.000 (dez milhões)
-Rate Limit:        200 req/min
+Email:     wesley@consecom.com.br
+Senha:     Wesley2025!
+Plano:     ENTERPRISE (30 dias, até 2026-10-05)
+Créditos:  10.000.000
+Rate:      200 req/min
 ```
 
-## API Key Ilimitada
+## API Key Ilimitada ✅ FUNCIONANDO
 
 ```
 sk_cr_live_b3162a040931f877_abCnio-PNPAQF3p_vS7PgzGHIPlPRkjpTxHmCir3B74
 ```
 
-### Exemplo de uso (OpenAI-compatible)
+### Exemplo de uso
 
 ```bash
 curl -X POST https://api-production-d761c.up.railway.app/v1/chat/completions \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer sk_cr_live_b3162a040931f877_abCnio-PNPAQF3p_vS7PgzGHIPlPRkjpTxHmCir3B74' \
   -d '{
-    "model": "claude-haiku-4-5",
+    "model": "claude-3-haiku",
     "messages": [{"role":"user","content":"Olá"}],
     "max_tokens": 100
   }'
 ```
 
-### Modelos disponíveis
+## Modelos disponíveis
 
-| Model Code | Provider | Preço input/1k | Preço output/1k |
+| Model Code | Provider Real | Preço | OpenRouter ID |
 |---|---|---|---|
-| `claude-haiku-4-5` | anthropic | $0.001 | $0.005 |
-| `claude-sonnet-4-5` | anthropic | $0.003 | $0.015 |
-| `claude-opus-4-5` (desabilitado) | anthropic | $0.015 | $0.075 |
+| `claude-3-haiku` | OpenRouter | $0.0002 / $0.001 | `anthropic/claude-3-haiku` |
+| `claude-haiku-4-5` | Anthropic | $0.001 / $0.005 | (precisa chave Anthropic) |
+| `claude-sonnet-4-5` | Anthropic | $0.003 / $0.015 | (precisa chave Anthropic) |
 
-> Outros modelos OpenRouter podem ser habilitados adicionando ao banco via `/v1/admin/models`.
-
-## ⚠️ Pendência: Chaves de provedores
-
-A chave **OpenRouter_API_KEY** foi configurada no Railway mas está expirada/revogada (retorna `User not found`). Precisa de uma chave válida.
-
-Configure no Railway via:
+Para adicionar mais modelos OpenRouter (Sonnet, Opus, etc):
 ```bash
-railway variables --set "OPENROUTER_API_KEY=sk-or-v1-..."
+curl -X POST https://api-production-d761c.up.railway.app/setup/create-model \
+  -H 'Content-Type: application/json' \
+  -d '{"code":"claude-sonnet-4-5-openrouter","displayName":"Claude Sonnet 4.5","providerCode":"openrouter","inputPricePer1kCents":300,"outputPricePer1kCents":1500}'
 ```
 
-ou `ANTHROPIC_API_KEY=sk-ant-...` para usar diretamente a Anthropic.
+## Provedores configurados
 
-## Diagnóstico do problema resolvido
+- ✅ **OpenRouter** com chave `redacted` (sua chave nova) — funcionando
+- ❌ Anthropic (precisa chave em `ANTHROPIC_API_KEY`)
+- ❌ Puter (precisa chave em `PUTER_AUTH_TOKEN`)
+- ❌ Poyo (precisa chave em `POYO_API_KEY`)
 
-| Problema | Causa | Solução |
-|---|---|---|
-| Deploys falhando | Docker build não instalava deps do workspace | `pnpm install --recursive` + .dockerignore |
-| Seed crashava | Enum `provider_code` não tinha `puter`/`openrouter`/`poyo` | `ALTER TYPE ADD VALUE IF NOT EXISTS` no migrate pre-step |
-| tsx não encontrado | pnpm não cria `.bin/tsx` em prod | `npm install -g tsx@4` no Dockerfile |
-| `pnpm install` rodava só 25 pacotes | Sem `--recursive` | Adicionado flag |
-| Domínio custom `api.consecom.com.br` retornando 404 | Cache/propagação DNS | Usar `api-production-d761c.up.railway.app` direto |
+## Rotas de debug úteis
 
-## Próximos passos
+- `GET /setup` — Mostra quantos users/api keys existem
+- `GET /setup/users` — Lista users
+- `POST /setup/fix-enums` — Adiciona valores faltantes no enum `provider_code`
+- `POST /setup/create-model` — Cria novo modelo (body: code, displayName, providerCode, prices)
+- `POST /setup/rotate-keys` — Re-criptografa todas as chaves dos providers dos env vars
+- `GET /setup/debug-key` — Verifica se a chave descriptografada bate com a env var
 
-1. **Adicionar chave válida** de OpenRouter ou Anthropic no Railway:
-   ```bash
-   railway variables --set "OPENROUTER_API_KEY=<sua-chave>"
-   railway variables --set "ANTHROPIC_API_KEY=<sua-chave>"  # opcional
-   ```
-2. **Mapear domínio custom** `api.consecom.com.br` → `api-production-d761c.up.railway.app` no painel Railway (atualmente está propagando)
-3. **Testar inferência**:
-   ```bash
-   curl https://api-production-d761c.up.railway.app/health
-   curl https://api-production-d761c.up.railway.app/setup/users
-   ```
+## Problemas resolvidos
+
+1. ✅ Dockerfile não instalava deps — `pnpm install --recursive`
+2. ✅ tsx não encontrado — `npm install -g tsx@4`
+3. ✅ Enum sem `puter`/`openrouter`/`poyo` — `ALTER TYPE ADD VALUE IF NOT EXISTS`
+4. ✅ Seed falhando — try/catch em todos os providers
+5. ✅ Deploys crashando — paths no PATH global
+6. ✅ Domínio custom não funcionando — usar `api-production-d761c.up.railway.app`
+7. ✅ Chave OpenRouter errada no banco — endpoint `/setup/rotate-keys`
 
 ## Repositório
 
 - GitHub: https://github.com/WmAgencia/Consecom-Routing
-- Último deploy: `5a586607` (SUCCESS)
+- Último deploy: `7b341324` (SUCCESS)
 - Branch: `main`

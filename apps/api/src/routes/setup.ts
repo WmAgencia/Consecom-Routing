@@ -3,22 +3,19 @@ import { randomBytes } from 'node:crypto';
 import { hash } from '@node-rs/argon2';
 import * as schema from '@consecom/db';
 
+const s: any = (schema as any).schema ?? schema;
+
 export function registerSetupRoutes(app: FastifyInstance) {
   // POST /setup - Create initial data (only works if no users exist)
   app.post('/setup', async (req: FastifyRequest, reply: FastifyReply) => {
     try {
-      // Check if admin exists
       const existingAdmin = await app.db.query.users.findFirst({
         where: (users, { eq }) => eq(users.email, 'admin@consecom.local')
       });
+      if (existingAdmin) return reply.status(400).send({ error: 'Already initialized' });
 
-      if (existingAdmin) {
-        return reply.status(400).send({ error: 'Already initialized' });
-      }
-
-      // Create superadmin
       const passwordHash = await hash('ChangeMe123!');
-      await app.db.insert(app.db.schema.users).values({
+      await app.db.insert(s.users).values({
         email: 'admin@consecom.local',
         passwordHash,
         name: 'Consecom Admin',
@@ -26,9 +23,8 @@ export function registerSetupRoutes(app: FastifyInstance) {
         status: 'active',
       });
 
-      // Create test user
       const userHash = await hash('Test123!');
-      const [user] = await app.db.insert(app.db.schema.users).values({
+      const [user] = await app.db.insert(s.users).values({
         email: 'test@consecom.com.br',
         passwordHash: userHash,
         name: 'Test User',
@@ -36,28 +32,25 @@ export function registerSetupRoutes(app: FastifyInstance) {
         status: 'active',
       }).returning();
 
-      // Create customer
-      const [customer] = await app.db.insert(app.db.schema.customers).values({
+      const [customer] = await app.db.insert(s.customers).values({
         userId: user.id,
         status: 'active',
       }).returning();
 
-      // Create balance
-      await app.db.insert(app.db.schema.balances).values({
+      await app.db.insert(s.balances).values({
         customerId: customer.id,
         creditsRemaining: 100000,
         creditsReserved: 0,
         lastUpdated: new Date(),
       });
 
-      // Create API key
       const keyPrefix = 'sk_cr_live_';
       const keyRandom = randomBytes(24).toString('base64url');
       const apiKey = keyPrefix + keyRandom;
       const prefix = keyPrefix + keyRandom.slice(0, 12);
       const keyHash = await hash(apiKey);
 
-      await app.db.insert(app.db.schema.apiKeys).values({
+      await app.db.insert(s.apiKeys).values({
         customerId: customer.id,
         prefix,
         keyHash,
@@ -72,16 +65,14 @@ export function registerSetupRoutes(app: FastifyInstance) {
         apiKey,
       });
     } catch (error) {
-      console.error('Setup error:', error);
       return reply.status(500).send({ error: 'Setup failed' });
     }
   });
 
   // GET /setup - Check status
-  app.get('/setup', async (req: FastifyRequest, reply: FastifyReply) => {
+  app.get('/setup', async (req, reply) => {
     const users = await app.db.query.users.findMany();
     const apiKeys = await app.db.query.apiKeys.findMany();
-
     return reply.send({
       users: users.length,
       apiKeys: apiKeys.length,
@@ -89,20 +80,19 @@ export function registerSetupRoutes(app: FastifyInstance) {
     });
   });
 
-  // GET /setup/users - List all users (dev only)
-  app.get('/setup/users', async (req: FastifyRequest, reply: FastifyReply) => {
+  // GET /setup/users
+  app.get('/setup/users', async (req, reply) => {
     const users = await app.db.query.users.findMany({
       columns: { id: true, email: true, name: true, role: true, status: true, createdAt: true },
     });
     return reply.send({ users });
   });
 
-  // POST /setup/fix-enums - Ensure all required enum values exist (dev only)
-  app.post('/setup/fix-enums', async (req: FastifyRequest, reply: FastifyReply) => {
+  // POST /setup/fix-enums
+  app.post('/setup/fix-enums', async (req, reply) => {
     try {
       const values = ['puter', 'openrouter', 'poyo'];
       const results: string[] = [];
-      // Use sql template from drizzle
       const { sql } = await import('drizzle-orm');
       for (const v of values) {
         try {
@@ -114,44 +104,72 @@ export function registerSetupRoutes(app: FastifyInstance) {
       }
       return reply.send({ results });
     } catch (error) {
-      console.error('Fix enums error:', error);
       return reply.status(500).send({ error: 'Fix enums failed', details: (error as Error).message });
     }
   });
 
-  // GET /setup/debug-key - Test decryption of stored openrouter key (dev only)
-  app.get('/setup/debug-key', async (req: FastifyRequest, reply: FastifyReply) => {
+  // POST /setup/create-provider
+  app.post('/setup/create-provider', async (req: FastifyRequest<{ Body: { code: string; displayName: string; apiBaseUrl?: string } }>, reply) => {
     try {
-      const { eq } = await import('drizzle-orm');
-      const schemaAny: any = (schema as any).schema ?? schema;
-      const providersTable = schemaAny.providers;
-      const secretsTable = schemaAny.providerSecrets;
-      const [provider] = await app.db.select().from(providersTable).where(eq(providersTable.code, 'openrouter' as any)).limit(1);
-      if (!provider) return reply.status(404).send({ error: 'openrouter provider not found' });
-      const [secret] = await app.db.select().from(secretsTable).where(eq(secretsTable.providerId, provider.id)).limit(1);
-      if (!secret) return reply.status(404).send({ error: 'no secret stored' });
-      const { decryptSecret } = await import('../lib/crypto.js');
-      const decrypted = decryptSecret(secret.encryptedKey);
-      return reply.send({
-        decryptedKeyPrefix: decrypted.slice(0, 20) + '...',
-        decryptedKeyLength: decrypted.length,
-        envVarPrefix: (process.env.OPENROUTER_API_KEY ?? '').slice(0, 20) + '...',
-        envVarLength: (process.env.OPENROUTER_API_KEY ?? '').length,
-        match: decrypted === process.env.OPENROUTER_API_KEY,
-      });
+      const body = req.body;
+      if (!body.code || !body.displayName) return reply.status(400).send({ error: 'code, displayName required' });
+      const apiBaseUrl = body.apiBaseUrl ?? `https://api.${body.code}.ai`;
+      const [provider] = await app.db.insert(s.providers).values({
+        code: body.code,
+        displayName: body.displayName,
+        status: 'active',
+        apiBaseUrl,
+        secretRef: body.code,
+      }).onConflictDoUpdate({
+        target: s.providers.code,
+        set: { displayName: body.displayName, status: 'active', apiBaseUrl },
+      }).returning();
+      return reply.send({ ok: true, provider });
     } catch (error) {
-      return reply.status(500).send({ error: 'debug-key failed', details: (error as Error).message });
+      return reply.status(500).send({ error: 'create-provider failed', details: (error as Error).message });
     }
   });
 
-  // POST /setup/rotate-keys - Force re-encrypt all provider secrets from current env vars (dev only)
-  app.post('/setup/rotate-keys', async (req: FastifyRequest, reply: FastifyReply) => {
+  // POST /setup/create-model
+  app.post('/setup/create-model', async (req: FastifyRequest<{ Body: { code: string; displayName: string; providerCode: string; inputPricePer1kCents: number; outputPricePer1kCents: number } }>, reply) => {
+    try {
+      const body = req.body;
+      if (!body.code || !body.displayName || !body.providerCode) {
+        return reply.status(400).send({ error: 'code, displayName, providerCode are required' });
+      }
+      const provider = await app.db.query.providers.findFirst({
+        where: (p, { eq }) => eq(p.code, body.providerCode as any),
+      });
+      if (!provider) return reply.status(404).send({ error: `Provider ${body.providerCode} not found` });
+      const [model] = await app.db.insert(s.models).values({
+        code: body.code,
+        displayName: body.displayName,
+        providerId: provider.id,
+        inputPricePer1kCents: body.inputPricePer1kCents ?? 100,
+        outputPricePer1kCents: body.outputPricePer1kCents ?? 500,
+        status: 'active',
+        capabilities: { maxContextTokens: 200000, supportsVision: false, supportsTools: true, supportsStreaming: true },
+      }).onConflictDoUpdate({
+        target: s.models.code,
+        set: {
+          providerId: provider.id,
+          displayName: body.displayName,
+          inputPricePer1kCents: body.inputPricePer1kCents ?? 100,
+          outputPricePer1kCents: body.outputPricePer1kCents ?? 500,
+          status: 'active',
+        },
+      }).returning();
+      return reply.send({ ok: true, model });
+    } catch (error) {
+      return reply.status(500).send({ error: 'Create model failed', details: (error as Error).message });
+    }
+  });
+
+  // POST /setup/rotate-keys
+  app.post('/setup/rotate-keys', async (req, reply) => {
     try {
       const { eq } = await import('drizzle-orm');
       const { encryptSecret } = await import('../lib/crypto.js');
-      const schemaAny: any = (schema as any).schema ?? schema;
-      const providersTable = schemaAny.providers;
-      const secretsTable = schemaAny.providerSecrets;
       const envMap: Record<string, string | undefined> = {
         anthropic: process.env.ANTHROPIC_API_KEY,
         openrouter: process.env.OPENROUTER_API_KEY,
@@ -161,12 +179,11 @@ export function registerSetupRoutes(app: FastifyInstance) {
       const results: any[] = [];
       for (const [code, key] of Object.entries(envMap)) {
         if (!key) { results.push({ code, status: 'skipped (no env var)' }); continue; }
-        const [provider] = await app.db.select().from(providersTable).where(eq(providersTable.code, code as any)).limit(1);
+        const [provider] = await app.db.select().from(s.providers).where(eq(s.providers.code, code as any)).limit(1);
         if (!provider) { results.push({ code, status: 'provider not found' }); continue; }
         const encrypted = encryptSecret(key);
-        // Upsert: delete existing then insert
-        await app.db.delete(secretsTable).where(eq(secretsTable.providerId, provider.id));
-        await app.db.insert(secretsTable).values({
+        await app.db.delete(s.providerSecrets).where(eq(s.providerSecrets.providerId, provider.id));
+        await app.db.insert(s.providerSecrets).values({
           providerId: provider.id,
           encryptedKey: encrypted,
           keyHint: key.slice(-4),
@@ -179,44 +196,25 @@ export function registerSetupRoutes(app: FastifyInstance) {
     }
   });
 
-  app.post('/setup/create-model', async (req: FastifyRequest<{ Body: { code: string; displayName: string; providerCode: string; inputPricePer1kCents: number; outputPricePer1kCents: number } }>, reply: FastifyReply) => {
+  // GET /setup/debug-key
+  app.get('/setup/debug-key', async (req, reply) => {
     try {
-      const body = req.body;
-      if (!body.code || !body.displayName || !body.providerCode) {
-        return reply.status(400).send({ error: 'code, displayName, providerCode are required' });
-      }
-      const provider = await app.db.query.providers.findFirst({
-        where: (p, { eq }) => eq(p.code, body.providerCode as any),
+      const { eq } = await import('drizzle-orm');
+      const [provider] = await app.db.select().from(s.providers).where(eq(s.providers.code, 'openrouter' as any)).limit(1);
+      if (!provider) return reply.status(404).send({ error: 'openrouter provider not found' });
+      const [secret] = await app.db.select().from(s.providerSecrets).where(eq(s.providerSecrets.providerId, provider.id)).limit(1);
+      if (!secret) return reply.status(404).send({ error: 'no secret stored' });
+      const { decryptSecret } = await import('../lib/crypto.js');
+      const decrypted = decryptSecret(secret.encryptedKey);
+      return reply.send({
+        decryptedKeyPrefix: decrypted.slice(0, 20) + '...',
+        decryptedKeyLength: decrypted.length,
+        envVarPrefix: (process.env.OPENROUTER_API_KEY ?? '').slice(0, 20) + '...',
+        envVarLength: (process.env.OPENROUTER_API_KEY ?? '').length,
+        match: decrypted === process.env.OPENROUTER_API_KEY,
       });
-      if (!provider) return reply.status(404).send({ error: `Provider ${body.providerCode} not found` });
-      const schemaAny: any = (schema as any).schema ?? schema;
-const modelsTable = schemaAny.models;
-const [model] = await app.db
-        .insert(modelsTable)
-        .values({
-          code: body.code,
-          displayName: body.displayName,
-          providerId: provider.id,
-          inputPricePer1kCents: body.inputPricePer1kCents ?? 100,
-          outputPricePer1kCents: body.outputPricePer1kCents ?? 500,
-          status: 'active',
-          capabilities: { maxContextTokens: 200000, supportsVision: false, supportsTools: true, supportsStreaming: true },
-        })
-        .onConflictDoUpdate({
-          target: modelsTable.code,
-          set: {
-            providerId: provider.id,
-            displayName: body.displayName,
-            inputPricePer1kCents: body.inputPricePer1kCents ?? 100,
-            outputPricePer1kCents: body.outputPricePer1kCents ?? 500,
-            status: 'active',
-          },
-        })
-        .returning();
-      return reply.send({ ok: true, model });
     } catch (error) {
-      console.error('Create model error:', error);
-      return reply.status(500).send({ error: 'Create model failed', details: (error as Error).message });
+      return reply.status(500).send({ error: 'debug-key failed', details: (error as Error).message });
     }
   });
 }
