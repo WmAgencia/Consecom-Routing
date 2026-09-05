@@ -1,7 +1,7 @@
 FROM node:20-alpine
 
 # Install pnpm and tsx globally
-RUN npm install -g pnpm@9 tsx@4
+RUN npm install -g pnpm@9 tsx@4 2>&1
 
 WORKDIR /app
 
@@ -11,7 +11,8 @@ COPY packages/*/package.json ./packages/
 COPY apps/*/package.json ./apps/
 
 # Install all dependencies (tsx is needed at runtime)
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile 2>&1 | tail -20 && \
+    echo "[install] node_modules size:" && du -sh /app/node_modules 2>&1
 
 # Copy source
 COPY packages ./packages
