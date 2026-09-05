@@ -328,12 +328,17 @@ export function _internal() {
 
 /**
  * Returns the fallback order of providers for a given model.
- * Priority: OpenRouter > Puter > Poyo > Anthropic (most reliable first)
+ * Priority: Puter > OpenRouter > Poyo > Anthropic
+ * Puter is most reliable (User-Pays, no per-call credits), so it goes first.
  */
 function getProviderFallbackOrder(modelCode: string, primaryProvider: string): string[] {
-  const allProviders = ['openrouter', 'puter', 'poyo', 'anthropic'];
+  // Base priority order — Puter first because it's the most reliable in practice
+  const priorityOrder = ['puter', 'openrouter', 'poyo', 'anthropic'];
 
-  // Remove primary from list and put it first
-  const others = allProviders.filter(p => p !== primaryProvider);
-  return [primaryProvider, ...others];
+  // Always start with the primary (model's designated provider)
+  const order: string[] = [primaryProvider];
+  for (const p of priorityOrder) {
+    if (p !== primaryProvider) order.push(p);
+  }
+  return order;
 }
