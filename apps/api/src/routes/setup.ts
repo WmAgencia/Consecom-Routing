@@ -99,17 +99,14 @@ export function registerSetupRoutes(app: FastifyInstance) {
   // POST /setup/fix-enums - Ensure all required enum values exist (dev only)
   app.post('/setup/fix-enums', async (req: FastifyRequest, reply: FastifyReply) => {
     try {
-      const sql = (app.db as any).$client ?? (app.db as any).session?.client;
-      // Use raw SQL via drizzle
       const values = ['puter', 'openrouter', 'poyo'];
       const results: string[] = [];
+      // Use sql template from drizzle
+      const { sql } = await import('drizzle-orm');
       for (const v of values) {
         try {
-          await app.db.execute(
-            // @ts-ignore - raw sql
-            { sql: `ALTER TYPE provider_code ADD VALUE IF NOT EXISTS '${v}'`, params: [] }
-          );
-          results.push(`${v}: added or already exists`);
+          await app.db.execute(sql.raw(`ALTER TYPE provider_code ADD VALUE IF NOT EXISTS '${v}'`));
+          results.push(`${v}: ok`);
         } catch (err) {
           results.push(`${v}: ${(err as Error).message}`);
         }
