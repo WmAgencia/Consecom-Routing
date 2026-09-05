@@ -144,7 +144,41 @@ export function registerSetupRoutes(app: FastifyInstance) {
     }
   });
 
-  // POST /setup/create-model - Create a model with a specific provider (dev only)
+  // POST /setup/rotate-keys - Force re-encrypt all provider secrets from current env vars (dev only)
+  app.post('/setup/rotate-keys', async (req: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const { eq } = await import('drizzle-orm');
+      const { encryptSecret } = await import('../lib/crypto.js');
+      const schemaAny: any = (schema as any).schema ?? schema;
+      const providersTable = schemaAny.providers;
+      const secretsTable = schemaAny.providerSecrets;
+      const envMap: Record<string, string | undefined> = {
+        anthropic: process.env.ANTHROPIC_API_KEY,
+        openrouter: process.env.OPENROUTER_API_KEY,
+        puter: process.env.PUTER_AUTH_TOKEN,
+        poyo: process.env.POYO_API_KEY,
+      };
+      const results: any[] = [];
+      for (const [code, key] of Object.entries(envMap)) {
+        if (!key) { results.push({ code, status: 'skipped (no env var)' }); continue; }
+        const [provider] = await app.db.select().from(providersTable).where(eq(providersTable.code, code as any)).limit(1);
+        if (!provider) { results.push({ code, status: 'provider not found' }); continue; }
+        const encrypted = encryptSecret(key);
+        // Upsert: delete existing then insert
+        await app.db.delete(secretsTable).where(eq(secretsTable.providerId, provider.id));
+        await app.db.insert(secretsTable).values({
+          providerId: provider.id,
+          encryptedKey: encrypted,
+          keyHint: key.slice(-4),
+        });
+        results.push({ code, status: 'rotated', hint: key.slice(-4) });
+      }
+      return reply.send({ results });
+    } catch (error) {
+      return reply.status(500).send({ error: 'rotate failed', details: (error as Error).message });
+    }
+  });
+
   app.post('/setup/create-model', async (req: FastifyRequest<{ Body: { code: string; displayName: string; providerCode: string; inputPricePer1kCents: number; outputPricePer1kCents: number } }>, reply: FastifyReply) => {
     try {
       const body = req.body;
