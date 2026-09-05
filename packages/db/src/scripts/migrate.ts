@@ -48,6 +48,7 @@ async function ensureEnumValue(enumName: string, value: string): Promise<void> {
 
 await ensureEnumValue('provider_code', 'puter');
 await ensureEnumValue('provider_code', 'openrouter');
+await ensureEnumValue('provider_code', 'poyo');
 
 console.log('[migrate] Running migrations from ./migrations ...');
 const db = drizzle(sql);

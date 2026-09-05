@@ -95,4 +95,29 @@ export function registerSetupRoutes(app: FastifyInstance) {
     });
     return reply.send({ users });
   });
+
+  // POST /setup/fix-enums - Ensure all required enum values exist (dev only)
+  app.post('/setup/fix-enums', async (req: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const sql = (app.db as any).$client ?? (app.db as any).session?.client;
+      // Use raw SQL via drizzle
+      const values = ['puter', 'openrouter', 'poyo'];
+      const results: string[] = [];
+      for (const v of values) {
+        try {
+          await app.db.execute(
+            // @ts-ignore - raw sql
+            { sql: `ALTER TYPE provider_code ADD VALUE IF NOT EXISTS '${v}'`, params: [] }
+          );
+          results.push(`${v}: added or already exists`);
+        } catch (err) {
+          results.push(`${v}: ${(err as Error).message}`);
+        }
+      }
+      return reply.send({ results });
+    } catch (error) {
+      console.error('Fix enums error:', error);
+      return reply.status(500).send({ error: 'Fix enums failed', details: (error as Error).message });
+    }
+  });
 }
