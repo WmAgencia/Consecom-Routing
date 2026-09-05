@@ -119,6 +119,31 @@ export function registerSetupRoutes(app: FastifyInstance) {
     }
   });
 
+  // GET /setup/debug-key - Test decryption of stored openrouter key (dev only)
+  app.get('/setup/debug-key', async (req: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const { eq } = await import('drizzle-orm');
+      const schemaAny: any = (schema as any).schema ?? schema;
+      const providersTable = schemaAny.providers;
+      const secretsTable = schemaAny.providerSecrets;
+      const [provider] = await app.db.select().from(providersTable).where(eq(providersTable.code, 'openrouter' as any)).limit(1);
+      if (!provider) return reply.status(404).send({ error: 'openrouter provider not found' });
+      const [secret] = await app.db.select().from(secretsTable).where(eq(secretsTable.providerId, provider.id)).limit(1);
+      if (!secret) return reply.status(404).send({ error: 'no secret stored' });
+      const { decryptSecret } = await import('../lib/crypto.js');
+      const decrypted = decryptSecret(secret.encryptedKey);
+      return reply.send({
+        decryptedKeyPrefix: decrypted.slice(0, 20) + '...',
+        decryptedKeyLength: decrypted.length,
+        envVarPrefix: (process.env.OPENROUTER_API_KEY ?? '').slice(0, 20) + '...',
+        envVarLength: (process.env.OPENROUTER_API_KEY ?? '').length,
+        match: decrypted === process.env.OPENROUTER_API_KEY,
+      });
+    } catch (error) {
+      return reply.status(500).send({ error: 'debug-key failed', details: (error as Error).message });
+    }
+  });
+
   // POST /setup/create-model - Create a model with a specific provider (dev only)
   app.post('/setup/create-model', async (req: FastifyRequest<{ Body: { code: string; displayName: string; providerCode: string; inputPricePer1kCents: number; outputPricePer1kCents: number } }>, reply: FastifyReply) => {
     try {
