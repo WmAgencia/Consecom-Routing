@@ -43,22 +43,26 @@ async function main() {
   console.log('[seed] starting ...');
 
   // ---------------------------------------------------------------------------
-  // Providers
+  // Providers — wrapped individually so a single failure doesn't abort seed
   // ---------------------------------------------------------------------------
-  const [anthropic] = await db
-    .insert(s.providers)
-    .values({
-      code: 'anthropic',
-      displayName: 'Anthropic',
-      status: 'active',
-      apiBaseUrl: 'https://api.anthropic.com',
-      secretRef: 'anthropic',
-    })
-    .onConflictDoNothing()
-    .returning();
+  try {
+    const [anthropic] = await db
+      .insert(s.providers)
+      .values({
+        code: 'anthropic',
+        displayName: 'Anthropic',
+        status: 'active',
+        apiBaseUrl: 'https://api.anthropic.com',
+        secretRef: 'anthropic',
+      })
+      .onConflictDoNothing()
+      .returning();
 
-  if (anthropic) {
-    console.log('[seed] provider anthropic created');
+    if (anthropic) {
+      console.log('[seed] provider anthropic created');
+    }
+  } catch (err) {
+    console.warn('[seed] anthropic provider skipped:', (err as Error).message);
   }
 
   // ---------------------------------------------------------------------------
@@ -81,8 +85,30 @@ async function main() {
       console.log('[seed] provider openrouter created');
     }
   } catch (err) {
-    // Enum 'openrouter' may not exist yet - this is OK, will be added via migration
-    console.warn('[seed] openrouter provider skipped (enum may not exist yet)');
+    console.warn('[seed] openrouter provider skipped:', (err as Error).message);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Provider: Puter (provedor alternativo)
+  // ---------------------------------------------------------------------------
+  try {
+    const [puter] = await db
+      .insert(s.providers)
+      .values({
+        code: 'puter',
+        displayName: 'Puter',
+        status: 'active',
+        apiBaseUrl: 'https://api.puter.com',
+        secretRef: 'puter',
+      })
+      .onConflictDoNothing()
+      .returning();
+
+    if (puter) {
+      console.log('[seed] provider puter created');
+    }
+  } catch (err) {
+    console.warn('[seed] puter provider skipped:', (err as Error).message);
   }
 
   // ---------------------------------------------------------------------------
