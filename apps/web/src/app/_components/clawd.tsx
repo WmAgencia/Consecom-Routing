@@ -17,8 +17,17 @@ export function Clawd({ size = 220 }: ClawdProps) {
 
   useEffect(() => {
     const handleMove = (e: MouseEvent | TouchEvent) => {
-      const cx = 'touches' in e ? e.touches[0].clientX : e.clientX;
-      const cy = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      let cx: number;
+      let cy: number;
+      if ('touches' in e && e.touches.length > 0) {
+        cx = e.touches[0]!.clientX;
+        cy = e.touches[0]!.clientY;
+      } else if ('clientX' in e) {
+        cx = e.clientX;
+        cy = e.clientY;
+      } else {
+        return;
+      }
       // Normalize: -1 to 1
       const x = (cx / window.innerWidth - 0.5) * 2;
       const y = (cy / window.innerHeight - 0.5) * 2;
