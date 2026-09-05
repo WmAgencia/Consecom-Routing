@@ -142,6 +142,8 @@ if (isMain) {
         process.exit(1);
       }
       app.log.info(`Consecom API listening at ${addr}`);
+      const routes = app.printRoutes({ commonPrefix: false });
+      app.log.info(`Registered routes:\n${routes}`);
     });
   } catch (err) {
     app_log_error(err);
