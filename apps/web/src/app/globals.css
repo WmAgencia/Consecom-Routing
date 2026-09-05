@@ -18,6 +18,22 @@
     color: #FFF7ED;
   }
 
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(168, 149, 133, 0.2);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(168, 149, 133, 0.4);
+  }
+
   /* Reduced motion respect */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -30,7 +46,7 @@
 @layer components {
   /* The terminal box that appears on landing + dashboard */
   .terminal {
-    @apply rounded-lg border border-brasa-700/40 bg-bg-subtle font-mono text-sm;
+    @apply rounded-2xl border border-brasa-700/40 bg-bg-subtle font-mono text-sm;
     box-shadow: 0 0 60px -20px rgba(232, 93, 31, 0.35),
       inset 0 1px 0 rgba(255, 247, 237, 0.04);
   }
@@ -48,39 +64,60 @@
   }
 
   .terminal-prompt {
-    @apply text-brasa-500;
+    @apply text-brasa-400;
   }
 
-  .terminal-comment {
-    @apply text-fg-muted;
+  /* Glass effect card */
+  .glass {
+    @apply rounded-2xl border border-white/5 bg-bg-panel/60 backdrop-blur-xl;
   }
 
-  .terminal-output {
-    @apply text-fg/80;
+  .glass-strong {
+    @apply rounded-2xl border border-white/10 bg-bg-panel/80 backdrop-blur-2xl;
   }
 
-  .terminal-cursor::after {
-    content: '▊';
-    @apply ml-0.5 inline-block animate-cursor-blink text-brasa-500;
+  /* Soft hover lift */
+  .hover-lift {
+    @apply transition hover:-translate-y-0.5;
+  }
+}
+
+@layer utilities {
+  /* Gradient text */
+  .text-gradient {
+    background: linear-gradient(135deg, #FFF7ED 0%, #FFB266 50%, #E85D1F 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
   }
 
-  /* Pricing card */
-  .plan-card {
-    @apply rounded-xl border border-fg-muted/10 bg-bg-panel p-6 transition;
+  /* Animated gradient background */
+  .bg-animated-gradient {
+    background: linear-gradient(135deg, #0F0907 0%, #1A0F08 50%, #0F0907 100%);
+    background-size: 200% 200%;
+    animation: gradient-shift 12s ease infinite;
   }
 
-  .plan-card-featured {
-    @apply border-brasa-500/50 shadow-glow;
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
   }
 
-  /* Buttons */
-  .btn-brasa {
-    @apply inline-flex items-center justify-center gap-2 rounded-md bg-brasa-500 px-5 py-2.5
-      font-medium text-bg transition hover:bg-brasa-600 active:translate-y-px;
+  /* Subtle shimmer for loading states */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(232, 93, 31, 0.08) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
   }
 
-  .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-md border border-fg-muted/20
-      px-5 py-2.5 text-sm font-medium text-fg transition hover:border-fg-muted/40 hover:bg-bg-panel;
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
   }
 }
