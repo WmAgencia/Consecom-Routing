@@ -45,8 +45,8 @@ export function Clawd({ size = 220 }: ClawdProps) {
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const id = ++burstId.current;
-      const emojis = ['✨', '⭐', '💥', '🎉', '🦀', '🚀'];
-      const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+      const emojis: string[] = ['✨', '⭐', '💥', '🎉', '🦀', '🚀'];
+      const emoji: string = emojis[Math.floor(Math.random() * emojis.length)] ?? '✨';
       setClickBursts((prev) => [...prev, { id, x: e.clientX, y: e.clientY, emoji }]);
       setMode('celebrate');
       if (celebrateTimer.current) clearTimeout(celebrateTimer.current);
