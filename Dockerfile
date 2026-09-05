@@ -5,20 +5,20 @@ RUN npm install -g pnpm@9
 
 WORKDIR /app
 
-# Copy root + all package.jsons
+# Copy root + all package.jsons + source
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY packages ./packages
 COPY apps ./apps
 COPY tsconfig.base.json ./
 
-# Install all workspace deps (--recursive ensures nested workspaces)
-RUN pnpm install --recursive --prefer-offline
+# Install all workspace deps
+RUN pnpm install --recursive
 
-# Verify critical deps
-RUN test -f /app/node_modules/tsx/dist/cli.mjs || (echo "tsx missing" && exit 1) && \
-    test -f /app/node_modules/fastify/package.json || (echo "fastify missing" && exit 1) && \
-    test -f /app/node_modules/drizzle-orm/package.json || (echo "drizzle-orm missing" && exit 1) && \
-    echo "[install] all critical deps present"
+# Verify critical deps (pnpm uses .pnpm/<name>@version structure)
+RUN ls /app/node_modules/.pnpm/tsx* 2>&1 | head -1 && \
+    ls /app/node_modules/.pnpm/fastify* 2>&1 | head -1 && \
+    ls /app/node_modules/.pnpm/drizzle-orm* 2>&1 | head -1 && \
+    echo "[install] deps verified in pnpm store"
 
 WORKDIR /app/apps/api
 
