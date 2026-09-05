@@ -1,24 +1,24 @@
 FROM node:20-alpine
 
-# Install pnpm globally
-RUN npm install -g pnpm@9
+# Install pnpm globally + tsx (needed at runtime to run TS files)
+RUN npm install -g pnpm@9 tsx@4 && \
+    ln -sf /usr/local/lib/node_modules/tsx/dist/cli.mjs /usr/local/bin/tsx-runner.mjs && \
+    echo '#!/bin/sh' > /usr/local/bin/tsx && \
+    echo 'exec node /usr/local/lib/node_modules/tsx/dist/cli.mjs "$@"' >> /usr/local/bin/tsx && \
+    chmod +x /usr/local/bin/tsx && \
+    echo "[setup] tsx installed globally"
 
 WORKDIR /app
 
-# Copy root + all package.jsons + source
+# Copy root + workspaces + source
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY packages ./packages
 COPY apps ./apps
 COPY tsconfig.base.json ./
 
-# Install all workspace deps
-RUN pnpm install --recursive
-
-# Verify critical deps (pnpm uses .pnpm/<name>@version structure)
-RUN ls /app/node_modules/.pnpm/tsx* 2>&1 | head -1 && \
-    ls /app/node_modules/.pnpm/fastify* 2>&1 | head -1 && \
-    ls /app/node_modules/.pnpm/drizzle-orm* 2>&1 | head -1 && \
-    echo "[install] deps verified in pnpm store"
+# Install all workspace deps (devDeps included for tsx availability)
+RUN pnpm install --recursive && \
+    echo "[install] pnpm install complete"
 
 WORKDIR /app/apps/api
 
