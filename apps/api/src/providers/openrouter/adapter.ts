@@ -135,13 +135,18 @@ export class OpenRouterAdapter implements ProviderAdapter {
   }
 
   /**
-   * Map our internal model code (e.g. `claude-sonnet-5-openrouter`)
+   * Map our internal model code (e.g. `claude-sonnet-5-or`, `claude-fable-5-or`)
    * to the OpenRouter model ID (e.g. `anthropic/claude-sonnet-5`).
+   * Strips both -openrouter and -or suffixes; routes gpt-5-6-sol to openai/.
    */
   private mapToUpstreamModel(internalCode: string): string {
-    // Strip -openrouter suffix if present
-    const base = internalCode.replace(/-openrouter$/, '');
-    // Prepend anthropic/ prefix for OpenRouter
+    // GPT-5.6 SOL routes to openai/ prefix, not anthropic/
+    if (internalCode.startsWith('gpt-')) {
+      const base = internalCode.replace(/-(openrouter|or)$/, '');
+      return `openai/${base}`;
+    }
+    // Strip -openrouter or -or suffix if present
+    const base = internalCode.replace(/-(openrouter|or)$/, '');
     return `anthropic/${base}`;
   }
 }
