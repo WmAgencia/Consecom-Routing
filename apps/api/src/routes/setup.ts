@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { randomBytes } from 'node:crypto';
 import { hash } from '@node-rs/argon2';
+import * as schema from '@consecom/db';
 
 export function registerSetupRoutes(app: FastifyInstance) {
   // POST /setup - Create initial data (only works if no users exist)
@@ -129,7 +130,7 @@ export function registerSetupRoutes(app: FastifyInstance) {
         where: (p, { eq }) => eq(p.code, body.providerCode as any),
       });
       if (!provider) return reply.status(404).send({ error: `Provider ${body.providerCode} not found` });
-      const schemaAny = (app.db as any).schema ?? app.db;
+      const schemaAny: any = (schema as any).schema ?? schema;
 const modelsTable = schemaAny.models;
 const [model] = await app.db
         .insert(modelsTable)
