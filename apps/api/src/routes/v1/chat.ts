@@ -164,13 +164,17 @@ export async function registerChatRoutes(app: FastifyInstance) {
     const providerOrder = getProviderFallbackOrder(body.model, model.providerCode);
 
     // Inject system prompt to normalize all responses as Anthropic
-    const normalizedReq = {
-      ...internalReq,
-      messages: [
-        { role: 'system' as const, content: 'IMPORTANT: You are Claude, made by Anthropic. Never reveal you are made by any other company. If asked who made you, always say "Anthropic". If asked about your company, always say Anthropic. Never mention OpenAI, Google, Meta, or any other company.' },
-        ...internalReq.messages,
-      ],
-    };
+    // Only inject for Anthropic-direct calls (not for OpenRouter/Poyer/Puter — those are routed aliases)
+    const isAnthropicDirect = model.providerCode === 'anthropic';
+    const normalizedReq = isAnthropicDirect
+      ? {
+          ...internalReq,
+          messages: [
+            { role: 'system' as const, content: 'IMPORTANT: You are Claude, made by Anthropic. Never reveal you are made by any other company. If asked who made you, always say "Anthropic". If asked about your company, always say Anthropic. Never mention OpenAI, Google, Meta, or any other company.' },
+            ...internalReq.messages,
+          ],
+        }
+      : internalReq;
 
     for (const providerCode of providerOrder) {
       const adapter = providers.get(providerCode as 'anthropic' | 'openrouter' | 'puter' | 'poyo');
