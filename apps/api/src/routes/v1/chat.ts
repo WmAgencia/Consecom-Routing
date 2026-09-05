@@ -193,6 +193,8 @@ export async function registerChatRoutes(app: FastifyInstance) {
         // Success! Use this provider
         usedProvider = providerCode;
         providerError = null;
+        // eslint-disable-next-line no-console
+        console.log(`[chat] model=${req.model} → provider=${providerCode} OK in ${Date.now() - startedAt}ms`);
         break;
       } catch (err) {
         // Try next provider
