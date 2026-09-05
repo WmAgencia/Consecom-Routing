@@ -82,12 +82,16 @@ export class OpenRouterAdapter implements ProviderAdapter {
 
     if (!resp.ok) {
       const text = await resp.text().catch(() => '');
+      // eslint-disable-next-line no-console
+      console.error(`[openrouter] HTTP ${resp.status}: ${text.slice(0, 500)} | request:`, { model: upstreamModelId, maxTokens: req.maxTokens, msgCount: req.messages.length });
       throw new Error(`openrouter upstream ${resp.status}: ${text.slice(0, 300)}`);
     }
 
     const raw = (await resp.json()) as OpenRouterChatResponse;
 
     if (raw.error) {
+      // eslint-disable-next-line no-console
+      console.error(`[openrouter] API error:`, raw.error);
       throw new Error(
         `openrouter error: ${raw.error.message ?? JSON.stringify(raw.error).slice(0, 200)}`,
       );
