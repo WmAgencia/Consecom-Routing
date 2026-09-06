@@ -9,7 +9,8 @@ interface ClaudeMascotProps {
 // Claude person — mascote oficial 3D do Claude (Anthropic)
 // Imagem em /public/mascots/claude-person.jpg
 // Aplica efeito 3D via CSS perspective + parallax por movimento do mouse
-export function ClaudeMascot({ size = 240 }: ClaudeMascotProps) {
+// Exportado como `Clawd` para manter compatibilidade com import no page.tsx
+export function Clawd({ size = 240 }: ClaudeMascotProps) {
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
   const [mode, setMode] = useState<'normal' | 'celebrate' | 'squish'>('normal');
   const [clickBursts, setClickBursts] = useState<Array<{ id: number; x: number; y: number; emoji: string }>>([]);
