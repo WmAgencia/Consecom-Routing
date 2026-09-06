@@ -1,11 +1,21 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import type { AuthResponse } from '@consecom/shared';
 
-// Em produção usa o route handler proxy /api/admin/proxy/v1/* que
+// Em produção usa o route handler proxy /api/proxy/v1/* que
 // existe e funciona. Em dev usa API direta.
 const USE_PROXY = process.env.NODE_ENV === 'production';
 const API_BASE = process.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+
+/** Resolve the absolute URL for self-fetch in production (Vercel serverless). */
+async function getAbsoluteBase(): Promise<string> {
+  if (!USE_PROXY) return API_BASE;
+  // Serverless fetch needs absolute URL — use the request's host
+  const h = await headers();
+  const host = h.get('host') ?? 'localhost';
+  const proto = h.get('x-forwarded-proto') ?? 'https';
+  return `${proto}://${host}`;
+}
 
 /** Server-side fetch helper. Passes cookies to the API. */
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -15,10 +25,8 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     .map((c) => `${c.name}=${c.value}`)
     .join('; ');
 
-  // Em produção, prepende /api/proxy pra usar o route handler proxy
-  const url = USE_PROXY ? `/api/proxy${path}` : `${API_BASE}${path}`;
-  // eslint-disable-next-line no-console
-  console.log('[apiFetch]', path, '→', url, 'cookies:', cookieHeader ? `${cookieHeader.slice(0, 50)}...` : 'none');
+  const base = await getAbsoluteBase();
+  const url = USE_PROXY ? `${base}/api/proxy${path}` : `${API_BASE}${path}`;
 
   const res = await fetch(url, {
     ...init,
@@ -29,13 +37,8 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     },
     cache: 'no-store',
   });
-  // eslint-disable-next-line no-console
-  console.log('[apiFetch]', path, '←', res.status, res.statusText);
   if (!res.ok) {
-    const body = await res.text();
-    // eslint-disable-next-line no-console
-    console.log('[apiFetch]', path, 'body:', body.slice(0, 200));
-    throw new ApiError(res.status, body);
+    throw new ApiError(res.status, await res.text());
   }
   return res.json() as Promise<T>;
 }
