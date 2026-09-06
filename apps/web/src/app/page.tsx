@@ -3,6 +3,7 @@ import { LiveTerminal } from './_components/live-terminal';
 import { PricingCards } from './_components/pricing-cards';
 import { HowItWorks } from './_components/how-it-works';
 import { Clawd } from './_components/clawd'; // Claude mascot (3D image)
+import { CodexMockup, ClaudeCodeMockup } from './_components/app-mockups';
 
 export default function LandingPage() {
   return (
@@ -128,32 +129,8 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="terminal mb-4 overflow-hidden">
-                <div className="terminal-header">
-                  <span className="terminal-dot bg-danger" />
-                  <span className="terminal-dot bg-warn" />
-                  <span className="terminal-dot bg-success" />
-                  <span className="ml-2">~/projeto · zsh</span>
-                </div>
-                <div className="terminal-body">
-                  <div>
-                    <span className="terminal-prompt">$</span>{' '}
-                    <span className="text-fg">export OPENAI_API_BASE=</span>
-                    <span className="text-brasa-300">"https://api.consecom.com.br/v1"</span>
-                  </div>
-                  <div>
-                    <span className="terminal-prompt">$</span>{' '}
-                    <span className="text-fg">export OPENAI_API_KEY=</span>
-                    <span className="text-brasa-300">"sk_cr_live_..."</span>
-                  </div>
-                  <div className="pt-2">
-                    <span className="terminal-prompt">$</span>{' '}
-                    <span className="text-fg">codex </span>
-                    <span className="text-brasa-300">"refatora esse módulo"</span>
-                  </div>
-                  <div className="text-fg-muted">⎯ Codex está analisando...</div>
-                  <div className="text-success">✓ Pronto. 3 arquivos modificados.</div>
-                </div>
+              <div className="mb-4 overflow-hidden rounded-2xl border border-emerald-500/20 shadow-2xl">
+                <CodexMockup />
               </div>
 
               <p className="text-sm text-fg-muted">
@@ -178,30 +155,8 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="mb-4 overflow-hidden rounded-2xl border border-white/5 bg-bg/60 p-4">
-                {/* Fake Claude Code app screenshot */}
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-danger" />
-                    <span className="h-2 w-2 rounded-full bg-warn" />
-                    <span className="h-2 w-2 rounded-full bg-success" />
-                    <span className="ml-2 font-mono text-xs text-fg-muted">Claude Code — meu-projeto</span>
-                  </div>
-                  <div className="font-mono text-[10px] text-success">● conectado</div>
-                </div>
-                <div className="space-y-2 rounded-lg bg-bg-subtle/50 p-3 font-mono text-xs">
-                  <div className="text-fg-muted">// Configurações → API</div>
-                  <div className="text-fg">
-                    Provider: <span className="text-brasa-300">Anthropic</span>
-                  </div>
-                  <div className="text-fg">
-                    Base URL: <span className="text-brasa-300">https://api.consecom.com.br</span>
-                  </div>
-                  <div className="text-fg">
-                    API Key: <span className="text-brasa-300">sk_cr_live_b3162a04...</span>
-                  </div>
-                  <div className="pt-1 text-success">✓ Autenticado · 17 modelos disponíveis</div>
-                </div>
+              <div className="mb-4 overflow-hidden rounded-2xl border border-brasa-500/20 shadow-2xl">
+                <ClaudeCodeMockup />
               </div>
 
               <p className="text-sm text-fg-muted">

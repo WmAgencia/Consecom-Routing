@@ -132,10 +132,10 @@ export function Clawd({ size = 240 }: ClawdProps) {
   const eyeW = size * 90 / 387;
   const eyeH = eyeW;
   // Position relative to image: 387x516 original
-  // Left eye center at (133, 214), Right eye at (279, 206)
-  const eyeLeftX = (133 / 387) * size - eyeW / 2;
+  // Left eye center at (134, 214), Right eye at (280, 206) — verified from PNG analysis
+  const eyeLeftX = (134 / 387) * size - eyeW / 2;
   const eyeLeftY = (214 / 516) * size * (516 / 387) - eyeH / 2;
-  const eyeRightX = (279 / 387) * size - eyeW / 2;
+  const eyeRightX = (280 / 387) * size - eyeW / 2;
   const eyeRightY = (206 / 516) * size * (516 / 387) - eyeH / 2;
 
   const makeEyeStyle = (): CSSProperties => ({
