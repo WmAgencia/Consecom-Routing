@@ -7,11 +7,8 @@ interface ClawdProps {
 }
 
 // Claude person oficial — mascote 3D do Claude (Anthropic)
-// 3 camadas separadas: corpo (estático) + 2 olhos (independentes que seguem o mouse)
-// Imagens em /public/mascots/:
-//   - claude-body.png (corpo sem fundo, sem olhos)
-//   - eye-left.png   (olho esquerdo recortado)
-//   - eye-right.png  (olho direito recortado)
+// 3 camadas separadas: corpo (estático) + 2 olhos (que seguem mouse)
+// Container tem fundo gradient sutil pra integrar o highlight 3D original ao tema
 export function Clawd({ size = 240 }: ClawdProps) {
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
   const [mode, setMode] = useState<'normal' | 'celebrate' | 'squish'>('normal');
@@ -19,7 +16,6 @@ export function Clawd({ size = 240 }: ClawdProps) {
   const burstId = useRef(0);
   const celebrateTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // Track mouse / touch
   useEffect(() => {
     const handleMove = (e: MouseEvent | TouchEvent) => {
       let cx: number;
@@ -45,7 +41,6 @@ export function Clawd({ size = 240 }: ClawdProps) {
     };
   }, []);
 
-  // Celebrate on click
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const id = ++burstId.current;
@@ -63,7 +58,6 @@ export function Clawd({ size = 240 }: ClawdProps) {
     return () => window.removeEventListener('click', handleClick);
   }, []);
 
-  // Squish when next section enters viewport
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -83,34 +77,31 @@ export function Clawd({ size = 240 }: ClawdProps) {
     return () => observer.disconnect();
   }, []);
 
-  // === Body 3D parallax (sutil — só o corpo inclina um pouco) ===
-  const maxBodyRotate = 10; // degrees — sutil pra não exagerar
-  const rotateY = mouse.x * maxBodyRotate;
-  const rotateX = -mouse.y * maxBodyRotate;
+  // Body tilts ±6° subtly
+  const rotateY = mouse.x * 6;
+  const rotateX = -mouse.y * 6;
   const shadowX = -mouse.x * 30;
   const shadowY = -mouse.y * 30;
 
-  // === Eye tracking (PRINCIPAL movimento) ===
-  // Olhos se movem ±10px em X, ±6px em Y seguindo o mouse
-  const eyeOffsetX = mouse.x * 10;
-  const eyeOffsetY = mouse.y * 6;
+  // Eyes follow cursor ±12px X, ±7px Y
+  const eyeOffsetX = mouse.x * 12;
+  const eyeOffsetY = mouse.y * 7;
 
-  // Body transform based on mode
-  let bodyTransform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+  let bodyTransform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
   if (mode === 'celebrate') {
-    bodyTransform = `perspective(900px) rotateX(-12deg) translateY(-22px) scale(1.08)`;
+    bodyTransform = `rotateX(-12deg) translateY(-22px) scale(1.08)`;
   } else if (mode === 'squish') {
-    bodyTransform = `perspective(900px) rotateX(${rotateX * 0.3}deg) rotateY(${rotateY * 0.3}deg) scaleY(0.6) scaleX(1.18) translateY(12px)`;
+    bodyTransform = `rotateX(${rotateX * 0.3}deg) rotateY(${rotateY * 0.3}deg) scaleY(0.6) scaleX(1.18) translateY(12px)`;
   }
 
+  const aspect = 516 / 387;
   const containerStyle: CSSProperties = {
     position: 'relative',
     width: size,
-    height: size * (516 / 387), // Maintain aspect ratio
-    perspective: 900,
-    transformStyle: 'preserve-3d',
+    height: size * aspect,
   };
 
+  // Body — drop-shadow + glow that follows cursor (acts as light source)
   const bodyStyle: CSSProperties = {
     position: 'absolute',
     inset: 0,
@@ -119,24 +110,23 @@ export function Clawd({ size = 240 }: ClawdProps) {
     objectFit: 'contain',
     transform: bodyTransform,
     transition: mode === 'celebrate' || mode === 'squish'
-      ? 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)'
-      : 'transform 0.3s ease-out',
-    filter: `drop-shadow(${shadowX}px ${shadowY}px 22px rgba(232, 93, 31, 0.45))
-             drop-shadow(${shadowX * 0.3}px ${shadowY * 0.3}px 8px rgba(0, 0, 0, 0.3))`,
+      ? 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)'
+      : 'transform 0.4s ease-out',
+    filter: `drop-shadow(${shadowX}px ${shadowY}px 30px rgba(232, 93, 31, 0.5))
+             drop-shadow(0 12px 24px rgba(0, 0, 0, 0.4))`,
     willChange: 'transform',
     userSelect: 'none',
     pointerEvents: 'none',
+    transformStyle: 'preserve-3d',
   };
 
-  // Eye dimensions (90x90 PNG with eye centered, has padding for movement)
+  // Eye positions (verified from PNG analysis)
   const eyeW = size * 90 / 387;
   const eyeH = eyeW;
-  // Position relative to image: 387x516 original
-  // Left eye center at (134, 214), Right eye at (280, 206) — verified from PNG analysis
   const eyeLeftX = (134 / 387) * size - eyeW / 2;
-  const eyeLeftY = (214 / 516) * size * (516 / 387) - eyeH / 2;
+  const eyeLeftY = (214 / 516) * size * aspect - eyeH / 2;
   const eyeRightX = (280 / 387) * size - eyeW / 2;
-  const eyeRightY = (206 / 516) * size * (516 / 387) - eyeH / 2;
+  const eyeRightY = (206 / 516) * size * aspect - eyeH / 2;
 
   const makeEyeStyle = (): CSSProperties => ({
     position: 'absolute',
@@ -144,7 +134,7 @@ export function Clawd({ size = 240 }: ClawdProps) {
     height: eyeH,
     pointerEvents: 'none',
     transform: `translate(${eyeOffsetX}px, ${eyeOffsetY}px)`,
-    transition: 'transform 0.15s ease-out',
+    transition: 'transform 0.2s cubic-bezier(0.22, 1, 0.36, 1)',
     willChange: 'transform',
   });
 
@@ -163,48 +153,80 @@ export function Clawd({ size = 240 }: ClawdProps) {
         ))}
       </div>
 
+      {/* Glow effect behind mascot — gives it presence on dark bg */}
+      <div
+        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-60 blur-3xl transition-transform duration-500"
+        style={{
+          width: size * 0.9,
+          height: size * 0.9,
+          background: 'radial-gradient(circle, rgba(232, 93, 31, 0.4) 0%, transparent 70%)',
+          transform: `translate(-50%, -50%) translate(${mouse.x * 10}px, ${mouse.y * 10}px)`,
+        }}
+      />
+
       <div style={containerStyle}>
-        {/* Body layer (no eyes, no background) */}
+        {/* Body */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/mascots/claude-body.png"
-          alt="Claude body"
+          alt="Claude mascot"
           draggable={false}
           style={bodyStyle}
         />
 
-        {/* Left eye — moves independently */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/mascots/eye-left.png"
-          alt=""
-          draggable={false}
-          aria-hidden
+        {/* Eyes — follow mouse independently, masked to stay inside eye cavities */}
+        <div
+          className="absolute"
           style={{
             ...makeEyeStyle(),
             left: eyeLeftX,
             top: eyeLeftY,
+            // Clip the eye to keep it inside the cavity even when moving
+            clipPath: 'inset(35% 30% 35% 30%)',
           }}
-        />
-
-        {/* Right eye — moves independently */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/mascots/eye-right.png"
-          alt=""
-          draggable={false}
-          aria-hidden
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/mascots/eye-left.png"
+            alt=""
+            draggable={false}
+            aria-hidden
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
+            }}
+          />
+        </div>
+        <div
+          className="absolute"
           style={{
             ...makeEyeStyle(),
             left: eyeRightX,
             top: eyeRightY,
+            clipPath: 'inset(35% 30% 35% 30%)',
           }}
-        />
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/mascots/eye-right.png"
+            alt=""
+            draggable={false}
+            aria-hidden
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
+            }}
+          />
+        </div>
 
         {/* Mood indicator */}
         {mode === 'celebrate' && (
           <div
-            className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap animate-bounce rounded-full bg-brasa-500 px-3 py-1 text-xs font-bold text-white shadow-glow"
+            className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap animate-bounce rounded-full bg-brasa-500 px-3 py-1 text-xs font-bold text-white shadow-glow"
             style={{ zIndex: 10 }}
           >
             🤖 yay!
@@ -212,7 +234,7 @@ export function Clawd({ size = 240 }: ClawdProps) {
         )}
         {mode === 'squish' && (
           <div
-            className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-warn px-3 py-1 text-xs font-bold text-bg shadow-lg"
+            className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-warn px-3 py-1 text-xs font-bold text-bg shadow-lg"
             style={{ zIndex: 10 }}
           >
             aaai, calma! 😅

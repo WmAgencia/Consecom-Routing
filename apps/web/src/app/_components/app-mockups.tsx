@@ -1,99 +1,151 @@
+// Realistic app mockups for the landing page "duas formas de usar" section
+// Codex (verde OpenAI) e Claude Code (laranja Anthropic)
+
 export function CodexMockup() {
   return (
-    <svg viewBox="0 0 600 380" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
+    <svg viewBox="0 0 720 440" xmlns="http://www.w3.org/2000/svg" className="block w-full h-auto">
       <defs>
-        <linearGradient id="codex-bg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#0F1B14" />
-          <stop offset="100%" stopColor="#0A0F0C" />
+        <linearGradient id="codex-window-bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#0E1A14" />
+          <stop offset="100%" stopColor="#080C0A" />
         </linearGradient>
-        <linearGradient id="codex-glow" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id="codex-titlebar" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#1A2922" />
+          <stop offset="100%" stopColor="#0E1A14" />
+        </linearGradient>
+        <linearGradient id="codex-approval-bg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#0F3D2D" />
+          <stop offset="100%" stopColor="#0A2A1F" />
+        </linearGradient>
+        <radialGradient id="codex-glow" cx="50%" cy="0%" r="80%">
           <stop offset="0%" stopColor="#10A37F" stopOpacity="0.15" />
           <stop offset="100%" stopColor="#10A37F" stopOpacity="0" />
-        </linearGradient>
+        </radialGradient>
       </defs>
 
+      {/* Window shadow */}
+      <rect x="3" y="6" width="714" height="430" rx="14" fill="#000" opacity="0.5" filter="blur(8px)" />
+
       {/* Window background */}
-      <rect width="600" height="380" rx="12" fill="url(#codex-bg)" />
-      <rect width="600" height="380" rx="12" fill="url(#codex-glow)" />
+      <rect width="720" height="440" rx="14" fill="url(#codex-window-bg)" stroke="#10A37F" strokeOpacity="0.15" />
+
+      {/* Glow */}
+      <rect width="720" height="440" rx="14" fill="url(#codex-glow)" />
 
       {/* Title bar */}
-      <rect width="600" height="36" fill="#000" opacity="0.3" />
-      <line x1="0" y1="36" x2="600" y2="36" stroke="#10A37F" strokeOpacity="0.2" />
+      <rect width="720" height="42" rx="14" fill="url(#codex-titlebar)" />
+      <rect y="14" width="720" height="28" fill="url(#codex-titlebar)" />
+      <line x1="0" y1="42" x2="720" y2="42" stroke="#10A37F" strokeOpacity="0.2" />
 
       {/* Traffic lights */}
-      <circle cx="20" cy="18" r="6" fill="#FF5F56" />
-      <circle cx="40" cy="18" r="6" fill="#FFBD2E" />
-      <circle cx="60" cy="18" r="6" fill="#27C93F" />
+      <circle cx="22" cy="21" r="6" fill="#FF5F56" />
+      <circle cx="22" cy="21" r="5" fill="#FF5F56" opacity="0.5" />
+      <circle cx="44" cy="21" r="6" fill="#FFBD2E" />
+      <circle cx="44" cy="21" r="5" fill="#FFBD2E" opacity="0.5" />
+      <circle cx="66" cy="21" r="6" fill="#27C93F" />
+      <circle cx="66" cy="21" r="5" fill="#27C93F" opacity="0.5" />
 
       {/* Tab title */}
-      <text x="300" y="22" fill="#10A37F" fontSize="11" fontFamily="monospace" textAnchor="middle" fontWeight="600">
-        codex — ~/consecom-routing (zsh)
+      <text x="360" y="26" fill="#10A37F" fontSize="11.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" textAnchor="middle" fontWeight="600">
+        codex — ~/projects/consecom-routing (zsh)
       </text>
 
-      {/* Content area */}
-      <g fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontSize="12">
-        {/* Prompt 1: cd */}
-        <text x="20" y="70" fill="#7A8478">$</text>
-        <text x="36" y="70" fill="#D4D4D4">cd ~/projects/consecom-routing</text>
+      {/* Tab indicator (active dot) */}
+      <circle cx="676" cy="21" r="3" fill="#10A37F" />
 
-        {/* Prompt 2: openai env */}
-        <text x="20" y="92" fill="#7A8478">$</text>
-        <text x="36" y="92" fill="#D4D4D4">export </text>
-        <text x="92" y="92" fill="#DCDCAA">OPENAI_API_BASE</text>
-        <text x="200" y="92" fill="#D4D4D4">=</text>
-        <text x="212" y="92" fill="#CE9178">"https://api.consecom.com.br/v1"</text>
+      {/* Content area */}
+      <g fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontSize="13">
+        {/* Prompt 1: cd */}
+        <text x="20" y="80" fill="#7A8478">$</text>
+        <text x="40" y="80" fill="#D4D4D4">cd ~/projects/consecom-routing</text>
+
+        {/* Prompt 2: openai env (highlight) */}
+        <text x="20" y="106" fill="#7A8478">$</text>
+        <text x="40" y="106" fill="#D4D4D4">export </text>
+        <text x="100" y="106" fill="#DCDCAA">OPENAI_API_BASE</text>
+        <text x="222" y="106" fill="#D4D4D4">=</text>
+        <text x="234" y="106" fill="#CE9178">"https://api.consecom.com.br/v1"</text>
 
         {/* Prompt 3: codex command */}
-        <text x="20" y="114" fill="#7A8478">$</text>
-        <text x="36" y="114" fill="#10A37F" fontWeight="700">codex </text>
-        <text x="82" y="114" fill="#CE9178">"adicione dark mode toggle no dashboard"</text>
+        <text x="20" y="132" fill="#7A8478">$</text>
+        <text x="40" y="132" fill="#10A37F" fontWeight="700">codex </text>
+        <text x="92" y="132" fill="#CE9178">"adicione dark mode toggle no dashboard"</text>
 
         {/* Empty line */}
-        <text x="20" y="136" fill="#7A8478"> </text>
+        <rect x="0" y="148" width="720" height="20" fill="#FFFFFF" opacity="0.02" />
 
         {/* Codex output */}
-        <g transform="translate(36, 156)">
-          <text fill="#10A37F" fontWeight="700">▌</text>
-          <text x="14" fill="#7A8478">codex v0.1.0 — OpenAI's coding agent</text>
-          <text x="0" y="18" fill="#7A8478">▌ Connecting to api.consecom.com.br</text>
-          <text x="0" y="36" fill="#7A8478">▌ Model: </text>
-          <text x="58" y="36" fill="#10A37F">claude-haiku-4-5-puter</text>
-          <text x="0" y="54" fill="#7A8478">▌ Working...</text>
+        <g transform="translate(40, 172)">
+          {/* Banner */}
+          <text fill="#10A37F" fontWeight="700" fontSize="13">▌ codex v0.1.0</text>
+          <text x="120" fill="#7A8478">— OpenAI's coding agent</text>
+
+          <text y="22" fill="#10A37F" fontWeight="700">▌</text>
+          <text x="14" y="22" fill="#7A8478">Connecting to</text>
+          <text x="130" y="22" fill="#10A37F">api.consecom.com.br</text>
+          <text x="280" y="22" fill="#7A8478">...</text>
+          <text x="305" y="22" fill="#10A37F" fontWeight="700">OK</text>
+
+          <text y="44" fill="#10A37F" fontWeight="700">▌</text>
+          <text x="14" y="44" fill="#7A8478">Model:</text>
+          <text x="70" y="44" fill="#10A37F" fontWeight="700">claude-haiku-4-5-puter</text>
+
+          <text y="66" fill="#10A37F" fontWeight="700">▌</text>
+          <text x="14" y="66" fill="#7A8478">Working on</text>
+          <text x="100" y="66" fill="#CE9178">apps/web/src/app/dashboard/page.tsx</text>
         </g>
 
-        {/* Tool call block */}
-        <g transform="translate(36, 240)">
-          <rect x="-8" y="-12" width="540" height="22" rx="4" fill="#10A37F" fillOpacity="0.1" stroke="#10A37F" strokeOpacity="0.3" />
-          <text fill="#10A37F">▸</text>
-          <text x="14" fill="#DCDCAA">Reading</text>
+        {/* Tool call: Read */}
+        <g transform="translate(40, 264)">
+          <rect x="-12" y="-14" width="660" height="26" rx="5" fill="#10A37F" fillOpacity="0.08" stroke="#10A37F" strokeOpacity="0.35" />
+          <text fill="#10A37F" fontSize="13" fontWeight="700">▸</text>
+          <text x="16" fill="#10A37F" fontWeight="700">Reading</text>
+          <text x="86" fill="#CE9178">apps/web/src/app/dashboard/page.tsx</text>
+          <text x="380" fill="#7A8478">...</text>
+          <text x="408" fill="#10A37F" fontWeight="700">ok (847 lines)</text>
+        </g>
+
+        {/* Tool call: Edit */}
+        <g transform="translate(40, 300)">
+          <rect x="-12" y="-14" width="660" height="26" rx="5" fill="#10A37F" fillOpacity="0.08" stroke="#10A37F" strokeOpacity="0.35" />
+          <text fill="#10A37F" fontSize="13" fontWeight="700">▸</text>
+          <text x="16" fill="#10A37F" fontWeight="700">Editing</text>
           <text x="78" fill="#CE9178">apps/web/src/app/dashboard/page.tsx</text>
-          <text x="320" fill="#7A8478">...</text>
-          <text x="340" fill="#10A37F">ok (847 lines)</text>
-        </g>
-
-        {/* Edit block */}
-        <g transform="translate(36, 268)">
-          <rect x="-8" y="-12" width="540" height="22" rx="4" fill="#10A37F" fillOpacity="0.1" stroke="#10A37F" strokeOpacity="0.3" />
-          <text fill="#10A37F">▸</text>
-          <text x="14" fill="#DCDCAA">Editing</text>
-          <text x="68" fill="#CE9178">apps/web/src/app/dashboard/page.tsx</text>
-          <text x="320" fill="#7A8478">+ </text>
-          <text x="332" fill="#10A37F">12 lines</text>
+          <text x="380" fill="#7A8478">+ </text>
+          <text x="396" fill="#10A37F" fontWeight="700">12 lines</text>
         </g>
 
         {/* Approval prompt */}
-        <g transform="translate(36, 304)">
-          <rect x="-8" y="-12" width="540" height="36" rx="4" fill="#10A37F" fillOpacity="0.08" stroke="#10A37F" strokeOpacity="0.4" />
-          <text fill="#10A37F">▌</text>
-          <text x="14" y="2" fill="#D4D4D4">Approve and run? </text>
-          <text x="146" y="2" fill="#7A8478">[</text>
-          <text x="152" y="2" fill="#10A37F" fontWeight="700">y</text>
-          <text x="160" y="2" fill="#7A8478">es/</text>
-          <text x="180" y="2" fill="#10A37F" fontWeight="700">n</text>
-          <text x="190" y="2" fill="#7A8478">o]</text>
-          <text x="14" y="20" fill="#10A37F">▌</text>
-          <text x="24" y="20" fill="#10A37F" fontWeight="700">y</text>
+        <g transform="translate(40, 340)">
+          <rect x="-12" y="-14" width="660" height="64" rx="6" fill="url(#codex-approval-bg)" stroke="#10A37F" strokeOpacity="0.5" strokeWidth="1.5" />
+
+          <text fill="#10A37F" fontSize="13" fontWeight="700">▌</text>
+          <text x="16" fill="#D4D4D4">Approve and run?</text>
+          <text x="146" fill="#7A8478">[</text>
+          <text x="154" fill="#10A37F" fontWeight="700" fontSize="14">y</text>
+          <text x="166" fill="#7A8478">es/</text>
+          <text x="190" fill="#10A37F" fontWeight="700" fontSize="14">n</text>
+          <text x="202" fill="#7A8478">o]</text>
+
+          {/* Cursor input line */}
+          <text y="28" fill="#10A37F" fontWeight="700">▌</text>
+          <text x="16" y="28" fill="#10A37F" fontWeight="700" fontSize="14">y</text>
+          <rect x="32" y="18" width="8" height="14" fill="#10A37F" opacity="0.8" />
         </g>
+      </g>
+
+      {/* Status bar at bottom */}
+      <rect y="410" width="720" height="30" fill="#000" opacity="0.4" />
+      <line x1="0" y1="410" x2="720" y2="410" stroke="#10A37F" strokeOpacity="0.2" />
+      <g fontFamily="ui-monospace, monospace" fontSize="10">
+        <circle cx="14" cy="425" r="3" fill="#10A37F" />
+        <text x="24" y="429" fill="#10A37F">ready</text>
+        <text x="120" y="429" fill="#7A8478">·</text>
+        <text x="135" y="429" fill="#D4D4D4">tokens: 2.3k</text>
+        <text x="220" y="429" fill="#7A8478">·</text>
+        <text x="235" y="429" fill="#D4D4D4">claude-haiku-4-5-puter</text>
+        <text x="400" y="429" fill="#7A8478">·</text>
+        <text x="412" y="429" fill="#10A37F" fontWeight="700">$0.012</text>
       </g>
     </svg>
   );
@@ -101,104 +153,168 @@ export function CodexMockup() {
 
 export function ClaudeCodeMockup() {
   return (
-    <svg viewBox="0 0 600 380" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
+    <svg viewBox="0 0 720 440" xmlns="http://www.w3.org/2000/svg" className="block w-full h-auto">
       <defs>
-        <linearGradient id="claude-bg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#1A0F08" />
+        <linearGradient id="claude-window-bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#221409" />
           <stop offset="100%" stopColor="#0F0907" />
         </linearGradient>
-        <linearGradient id="claude-glow" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id="claude-titlebar" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#1F1409" />
+          <stop offset="100%" stopColor="#15090A" />
+        </linearGradient>
+        <linearGradient id="claude-user-msg" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#E85D1F" stopOpacity="0.15" />
+          <stop offset="100%" stopColor="#E85D1F" stopOpacity="0.08" />
+        </linearGradient>
+        <linearGradient id="claude-assistant-msg" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#FFF7ED" stopOpacity="0.06" />
+          <stop offset="100%" stopColor="#FFF7ED" stopOpacity="0.03" />
+        </linearGradient>
+        <linearGradient id="claude-send-btn" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#FB8B3C" />
+          <stop offset="100%" stopColor="#E85D1F" />
+        </linearGradient>
+        <radialGradient id="claude-glow" cx="50%" cy="0%" r="80%">
           <stop offset="0%" stopColor="#E85D1F" stopOpacity="0.15" />
           <stop offset="100%" stopColor="#E85D1F" stopOpacity="0" />
-        </linearGradient>
+        </radialGradient>
       </defs>
 
+      {/* Window shadow */}
+      <rect x="3" y="6" width="714" height="430" rx="14" fill="#000" opacity="0.5" filter="blur(8px)" />
+
       {/* Window background */}
-      <rect width="600" height="380" rx="12" fill="url(#claude-bg)" />
-      <rect width="600" height="380" rx="12" fill="url(#claude-glow)" />
+      <rect width="720" height="440" rx="14" fill="url(#claude-window-bg)" stroke="#E85D1F" strokeOpacity="0.15" />
+
+      {/* Glow */}
+      <rect width="720" height="440" rx="14" fill="url(#claude-glow)" />
 
       {/* Title bar */}
-      <rect width="600" height="36" fill="#000" opacity="0.3" />
-      <line x1="0" y1="36" x2="600" y2="36" stroke="#E85D1F" strokeOpacity="0.2" />
+      <rect width="720" height="42" rx="14" fill="url(#claude-titlebar)" />
+      <rect y="14" width="720" height="28" fill="url(#claude-titlebar)" />
+      <line x1="0" y1="42" x2="720" y2="42" stroke="#E85D1F" strokeOpacity="0.2" />
 
       {/* Traffic lights */}
-      <circle cx="20" cy="18" r="6" fill="#FF5F56" />
-      <circle cx="40" cy="18" r="6" fill="#FFBD2E" />
-      <circle cx="60" cy="18" r="6" fill="#27C93F" />
+      <circle cx="22" cy="21" r="6" fill="#FF5F56" />
+      <circle cx="44" cy="21" r="6" fill="#FFBD2E" />
+      <circle cx="66" cy="21" r="6" fill="#27C93F" />
 
       {/* Tab title with Claude icon */}
-      <text x="300" y="22" fill="#E85D1F" fontSize="11" fontFamily="monospace" textAnchor="middle" fontWeight="600">
+      <text x="360" y="26" fill="#E85D1F" fontSize="11.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" textAnchor="middle" fontWeight="600">
         Claude Code — consecom-routing
       </text>
 
-      {/* Sidebar */}
-      <rect x="0" y="36" width="140" height="344" fill="#000" opacity="0.25" />
-      <line x1="140" y1="36" x2="140" y2="380" stroke="#E85D1F" strokeOpacity="0.15" />
+      {/* Tab indicator (active dot) */}
+      <circle cx="676" cy="21" r="3" fill="#E85D1F" />
 
-      {/* Sidebar content */}
-      <g fontFamily="ui-monospace, monospace" fontSize="10" fill="#A89585">
-        <text x="14" y="62" fontWeight="700" fill="#E85D1F">consecom-routing</text>
-        <text x="14" y="82">  📁 apps</text>
-        <text x="14" y="98">    📁 web</text>
-        <text x="22" y="114">      📄 page.tsx</text>
-        <text x="22" y="130">      📄 layout.tsx</text>
-        <text x="22" y="146">      📁 _components</text>
-        <text x="14" y="162">  📁 packages</text>
-        <text x="14" y="178">  📁 node_modules</text>
-        <text x="14" y="200" fontWeight="700" fill="#E85D1F">Files Changed</text>
-        <text x="14" y="220">+ 3 modified</text>
-        <text x="14" y="236">+ 1 created</text>
+      {/* Sidebar */}
+      <rect x="0" y="42" width="180" height="368" fill="#000" opacity="0.3" />
+      <line x1="180" y1="42" x2="180" y2="410" stroke="#E85D1F" strokeOpacity="0.15" />
+
+      {/* Sidebar header */}
+      <g fontFamily="ui-sans-serif, system-ui" fontSize="10">
+        <rect x="12" y="58" width="156" height="22" rx="6" fill="#E85D1F" fillOpacity="0.15" />
+        <text x="22" y="73" fill="#E85D1F" fontWeight="700" fontFamily="monospace">consecom-routing</text>
       </g>
 
-      {/* Main area */}
-      <g transform="translate(160, 56)">
+      {/* Sidebar tree */}
+      <g fontFamily="ui-monospace, monospace" fontSize="10.5" fill="#A89585">
+        <text x="14" y="100">📁 apps</text>
+        <text x="22" y="116">  📁 web</text>
+        <text x="34" y="132">    📁 src</text>
+        <text x="44" y="148">      📁 app</text>
+        <text x="54" y="164">        📁 dashboard</text>
+        <text x="64" y="180" fill="#E85D1F" fontWeight="700">        📄 page.tsx</text>
+        <text x="64" y="196">        📄 layout.tsx</text>
+        <text x="44" y="212">      📁 _components</text>
+        <text x="34" y="228">    📄 globals.css</text>
+        <text x="22" y="244">  📁 api</text>
+        <text x="14" y="260">📁 packages</text>
+        <text x="14" y="276">  📁 db</text>
+        <text x="14" y="292">  📁 shared</text>
+        <text x="14" y="308">  📁 config</text>
+        <text x="14" y="324">📄 package.json</text>
+        <text x="14" y="340">📄 pnpm-lock.yaml</text>
+
+        {/* Files changed indicator */}
+        <rect x="12" y="358" width="156" height="44" rx="6" fill="#E85D1F" fillOpacity="0.08" stroke="#E85D1F" strokeOpacity="0.2" />
+        <text x="22" y="375" fill="#E85D1F" fontWeight="700">Files Changed</text>
+        <text x="22" y="390" fill="#A89585">+ 3 modified</text>
+        <text x="22" y="402" fill="#A89585">+ 1 created</text>
+      </g>
+
+      {/* Main chat area */}
+      <g transform="translate(196, 56)">
         {/* Model selector */}
-        <rect x="0" y="0" width="120" height="22" rx="6" fill="#E85D1F" fillOpacity="0.15" stroke="#E85D1F" strokeOpacity="0.4" />
-        <text x="10" y="14" fill="#E85D1F" fontSize="10" fontFamily="monospace">Claude Sonnet 4.5</text>
+        <rect x="0" y="0" width="148" height="26" rx="8" fill="#E85D1F" fillOpacity="0.15" stroke="#E85D1F" strokeOpacity="0.5" />
+        <circle cx="14" cy="13" r="4" fill="#E85D1F" />
+        <text x="26" y="17" fill="#E85D1F" fontSize="10.5" fontFamily="ui-monospace, monospace" fontWeight="700">Claude Sonnet 4.5</text>
 
-        {/* Messages */}
-        <g fontFamily="ui-sans-serif, system-ui" fontSize="11">
-          {/* User message */}
-          <g transform="translate(0, 40)">
-            <rect x="0" y="0" width="380" height="36" rx="8" fill="#E85D1F" fillOpacity="0.1" stroke="#E85D1F" strokeOpacity="0.3" />
-            <text x="14" y="14" fill="#A89585" fontSize="9" fontFamily="monospace">Você</text>
-            <text x="14" y="28" fill="#FFF7ED">Refatora o auth pra usar OAuth2 em vez de JWT</text>
-          </g>
+        {/* Connection indicator */}
+        <rect x="368" y="0" width="80" height="26" rx="8" fill="#10A37F" fillOpacity="0.1" stroke="#10A37F" strokeOpacity="0.4" />
+        <circle cx="380" cy="13" r="3" fill="#10A37F" />
+        <text x="390" y="17" fill="#10A37F" fontSize="10" fontFamily="monospace">conectado</text>
 
-          {/* Assistant message */}
-          <g transform="translate(0, 90)">
-            <rect x="0" y="0" width="380" height="100" rx="8" fill="#FFF7ED" fillOpacity="0.05" stroke="#FFF7ED" strokeOpacity="0.1" />
-            <text x="14" y="14" fill="#E85D1F" fontSize="9" fontFamily="monospace">Claude</text>
+        {/* User message */}
+        <g transform="translate(0, 48)">
+          <rect x="0" y="0" width="500" height="46" rx="10" fill="url(#claude-user-msg)" stroke="#E85D1F" strokeOpacity="0.3" />
+          <text x="14" y="16" fill="#E85D1F" fontSize="9" fontFamily="ui-monospace, monospace" fontWeight="700">Você · 14:32</text>
+          <text x="14" y="36" fill="#FFF7ED" fontSize="12" fontFamily="ui-sans-serif, system-ui">Refatora o auth pra usar OAuth2 em vez de JWT custom.</text>
+        </g>
 
-            <text x="14" y="32" fill="#FFF7ED">Vou refatorar o sistema de autenticação</text>
-            <text x="14" y="48" fill="#FFF7ED">seguindo estes passos:</text>
+        {/* Assistant message */}
+        <g transform="translate(0, 110)">
+          <rect x="0" y="0" width="500" height="170" rx="10" fill="url(#claude-assistant-msg)" stroke="#FFF7ED" strokeOpacity="0.15" />
 
-            <text x="14" y="68" fill="#10A37F">1.</text>
-            <text x="26" y="68" fill="#FFF7ED">Adicionar </text>
-            <text x="84" y="68" fill="#CE9178" fontFamily="monospace">OAuth2Provider</text>
-            <text x="160" y="68" fill="#FFF7ED"> class</text>
+          {/* Avatar */}
+          <circle cx="22" cy="20" r="11" fill="#E85D1F" />
+          <text x="22" y="24" fill="#FFF7ED" fontSize="11" fontFamily="ui-sans-serif" fontWeight="700" textAnchor="middle">C</text>
 
-            <text x="14" y="84" fill="#10A37F">2.</text>
-            <text x="26" y="84" fill="#FFF7ED">Substituir JWT middleware</text>
-          </g>
+          <text x="42" y="24" fill="#E85D1F" fontSize="9" fontFamily="ui-monospace, monospace" fontWeight="700">Claude · 14:32</text>
 
-          {/* Tool indicator */}
-          <g transform="translate(0, 204)">
-            <circle cx="8" cy="8" r="3" fill="#E85D1F">
-              <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite" />
-            </circle>
-            <text x="18" y="12" fill="#A89585" fontSize="9" fontFamily="monospace">Reading apps/api/src/middleware/auth.ts</text>
-          </g>
+          <text x="14" y="52" fill="#FFF7ED" fontSize="12" fontFamily="ui-sans-serif, system-ui">Vou refatorar o sistema de autenticação.</text>
+          <text x="14" y="70" fill="#FFF7ED" fontSize="12" fontFamily="ui-sans-serif, system-ui">Plano de execução:</text>
+
+          {/* Step list */}
+          <text x="14" y="92" fill="#10A37F" fontSize="11" fontFamily="ui-monospace, monospace" fontWeight="700">1.</text>
+          <text x="28" y="92" fill="#FFF7ED" fontSize="11" fontFamily="ui-sans-serif, system-ui">Adicionar </text>
+          <text x="100" y="92" fill="#CE9178" fontSize="11" fontFamily="ui-monospace, monospace">OAuth2Provider</text>
+          <text x="184" y="92" fill="#FFF7ED" fontSize="11" fontFamily="ui-sans-serif, system-ui"> class</text>
+
+          <text x="14" y="110" fill="#10A37F" fontSize="11" fontFamily="ui-monospace, monospace" fontWeight="700">2.</text>
+          <text x="28" y="110" fill="#FFF7ED" fontSize="11" fontFamily="ui-sans-serif, system-ui">Substituir JWT middleware</text>
+
+          <text x="14" y="128" fill="#10A37F" fontSize="11" fontFamily="ui-monospace, monospace" fontWeight="700">3.</text>
+          <text x="28" y="128" fill="#FFF7ED" fontSize="11" fontFamily="ui-sans-serif, system-ui">Adicionar refresh token rotation</text>
+
+          <text x="14" y="146" fill="#10A37F" fontSize="11" fontFamily="ui-monospace, monospace" fontWeight="700">4.</text>
+          <text x="28" y="146" fill="#FFF7ED" fontSize="11" fontFamily="ui-sans-serif, system-ui">Atualizar testes e migrações</text>
+        </g>
+
+        {/* Tool indicator (loading) */}
+        <g transform="translate(0, 296)">
+          <circle cx="10" cy="10" r="4" fill="#E85D1F">
+            <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite" />
+          </circle>
+          <text x="22" y="14" fill="#A89585" fontSize="10" fontFamily="ui-monospace, monospace">
+            Reading apps/api/src/middleware/auth.ts · 124 lines · 4.2KB
+          </text>
         </g>
       </g>
 
       {/* Bottom input area */}
-      <g transform="translate(160, 340)">
-        <rect x="0" y="0" width="420" height="32" rx="8" fill="#221409" stroke="#FFF7ED" strokeOpacity="0.15" />
-        <text x="14" y="20" fill="#A89585" fontSize="11" fontFamily="monospace">Pergunte ao Claude...</text>
+      <g transform="translate(196, 360)">
+        <rect x="0" y="0" width="500" height="42" rx="12" fill="#221409" stroke="#FFF7ED" strokeOpacity="0.15" />
+        <text x="14" y="26" fill="#7A8478" fontSize="11.5" fontFamily="ui-sans-serif, system-ui">Pergunte ao Claude...</text>
+
+        {/* Model pill */}
+        <rect x="380" y="11" width="68" height="20" rx="6" fill="#E85D1F" fillOpacity="0.15" />
+        <text x="414" y="25" fill="#E85D1F" fontSize="9" fontFamily="monospace" textAnchor="middle">Sonnet 4.5</text>
+
         {/* Send button */}
-        <rect x="380" y="4" width="32" height="24" rx="6" fill="#E85D1F" />
-        <text x="396" y="20" fill="#FFF7ED" fontSize="14" textAnchor="middle">↑</text>
+        <rect x="458" y="6" width="36" height="30" rx="9" fill="url(#claude-send-btn)" />
+        <text x="476" y="26" fill="#FFF7ED" fontSize="16" fontFamily="ui-sans-serif" textAnchor="middle" fontWeight="700">↑</text>
       </g>
     </svg>
   );
