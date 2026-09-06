@@ -13,7 +13,7 @@ const getApiBase = () => {
 export async function GET(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
   const apiBase = getApiBase();
-  const url = `${apiBase}/${path.join('/')}${request.nextUrl.search}`;
+  const url = `${apiBase}/v1/${path.join('/')}${request.nextUrl.search}`;
 
   try {
     const headers: Record<string, string> = {};
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
   const apiBase = getApiBase();
-  const url = `${apiBase}/${path.join('/')}${request.nextUrl.search}`;
+  const url = `${apiBase}/v1/${path.join('/')}${request.nextUrl.search}`;
 
   try {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
