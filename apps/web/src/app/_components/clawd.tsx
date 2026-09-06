@@ -2,23 +2,24 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 
-interface ClaudeMascotProps {
+interface ClawdProps {
   size?: number;
 }
 
-// Claude person — mascote oficial 3D do Claude (Anthropic)
-// Imagem em /public/mascots/claude-person.jpg
-// Aplica efeito 3D via CSS perspective + parallax por movimento do mouse
-// Exportado como `Clawd` para manter compatibilidade com import no page.tsx
-export function Clawd({ size = 240 }: ClaudeMascotProps) {
+// Claude person oficial — mascote 3D do Claude (Anthropic)
+// 3 camadas separadas: corpo (estático) + 2 olhos (independentes que seguem o mouse)
+// Imagens em /public/mascots/:
+//   - claude-body.png (corpo sem fundo, sem olhos)
+//   - eye-left.png   (olho esquerdo recortado)
+//   - eye-right.png  (olho direito recortado)
+export function Clawd({ size = 240 }: ClawdProps) {
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
   const [mode, setMode] = useState<'normal' | 'celebrate' | 'squish'>('normal');
   const [clickBursts, setClickBursts] = useState<Array<{ id: number; x: number; y: number; emoji: string }>>([]);
   const burstId = useRef(0);
   const celebrateTimer = useRef<NodeJS.Timeout | null>(null);
-  const imgRef = useRef<HTMLImageElement>(null);
 
-  // Track mouse / touch for 3D parallax
+  // Track mouse / touch
   useEffect(() => {
     const handleMove = (e: MouseEvent | TouchEvent) => {
       let cx: number;
@@ -82,58 +83,70 @@ export function Clawd({ size = 240 }: ClaudeMascotProps) {
     return () => observer.disconnect();
   }, []);
 
-  // === 3D Parallax math ===
-  // Mouse x,y = -1 to 1
-  // The image tilts TOWARD the cursor (so it looks at the mouse)
-  // We also shift the drop-shadow position to fake a light source at the mouse
-  const maxRotate = 18; // degrees max tilt
-  const maxTranslate = 14; // pixels max translate
-  const rotateY = mouse.x * maxRotate; // left/right tilt
-  const rotateX = -mouse.y * maxRotate; // up/down tilt (inverted: looking up = negative rotateX)
-  const translateX = mouse.x * maxTranslate;
-  const translateY = mouse.y * maxTranslate * 0.6;
-
-  // Shadow follows the light source (opposite of the cursor)
+  // === Body 3D parallax (sutil — só o corpo inclina um pouco) ===
+  const maxBodyRotate = 10; // degrees — sutil pra não exagerar
+  const rotateY = mouse.x * maxBodyRotate;
+  const rotateX = -mouse.y * maxBodyRotate;
   const shadowX = -mouse.x * 30;
   const shadowY = -mouse.y * 30;
 
-  // Base 3D transform
-  let baseTransform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateX(${translateX}px) translateY(${translateY}px)`;
+  // === Eye tracking (PRINCIPAL movimento) ===
+  // Olhos se movem ±10px em X, ±6px em Y seguindo o mouse
+  const eyeOffsetX = mouse.x * 10;
+  const eyeOffsetY = mouse.y * 6;
 
+  // Body transform based on mode
+  let bodyTransform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
   if (mode === 'celebrate') {
-    // Jump up and rotate
-    baseTransform = `perspective(900px) rotateX(-15deg) rotateY(${
-      mouse.x * 8
-    }deg) translateY(-26px) scale(1.08)`;
+    bodyTransform = `perspective(900px) rotateX(-12deg) translateY(-22px) scale(1.08)`;
   } else if (mode === 'squish') {
-    // Flatten vertically, stretch horizontally — like being pressed down
-    baseTransform = `perspective(900px) rotateX(${
-      rotateX * 0.3
-    }deg) rotateY(${rotateY * 0.3}deg) scaleY(0.6) scaleX(1.18) translateY(14px)`;
+    bodyTransform = `perspective(900px) rotateX(${rotateX * 0.3}deg) rotateY(${rotateY * 0.3}deg) scaleY(0.6) scaleX(1.18) translateY(12px)`;
   }
 
   const containerStyle: CSSProperties = {
+    position: 'relative',
     width: size,
-    height: size,
+    height: size * (516 / 387), // Maintain aspect ratio
     perspective: 900,
     transformStyle: 'preserve-3d',
   };
 
-  const imgStyle: CSSProperties = {
+  const bodyStyle: CSSProperties = {
+    position: 'absolute',
+    inset: 0,
     width: '100%',
     height: '100%',
     objectFit: 'contain',
-    transform: baseTransform,
-    transformStyle: 'preserve-3d',
+    transform: bodyTransform,
     transition: mode === 'celebrate' || mode === 'squish'
       ? 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)'
-      : 'transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
+      : 'transform 0.3s ease-out',
     filter: `drop-shadow(${shadowX}px ${shadowY}px 22px rgba(232, 93, 31, 0.45))
              drop-shadow(${shadowX * 0.3}px ${shadowY * 0.3}px 8px rgba(0, 0, 0, 0.3))`,
     willChange: 'transform',
     userSelect: 'none',
     pointerEvents: 'none',
   };
+
+  // Eye dimensions (90x90 PNG with eye centered, has padding for movement)
+  const eyeW = size * 90 / 387;
+  const eyeH = eyeW;
+  // Position relative to image: 387x516 original
+  // Left eye center at (133, 214), Right eye at (279, 206)
+  const eyeLeftX = (133 / 387) * size - eyeW / 2;
+  const eyeLeftY = (214 / 516) * size * (516 / 387) - eyeH / 2;
+  const eyeRightX = (279 / 387) * size - eyeW / 2;
+  const eyeRightY = (206 / 516) * size * (516 / 387) - eyeH / 2;
+
+  const makeEyeStyle = (): CSSProperties => ({
+    position: 'absolute',
+    width: eyeW,
+    height: eyeH,
+    pointerEvents: 'none',
+    transform: `translate(${eyeOffsetX}px, ${eyeOffsetY}px)`,
+    transition: 'transform 0.15s ease-out',
+    willChange: 'transform',
+  });
 
   return (
     <>
@@ -150,17 +163,42 @@ export function Clawd({ size = 240 }: ClaudeMascotProps) {
         ))}
       </div>
 
-      <div
-        className="relative"
-        style={containerStyle}
-      >
+      <div style={containerStyle}>
+        {/* Body layer (no eyes, no background) */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          ref={imgRef}
-          src="/mascots/claude-person.jpg"
-          alt="Claude mascot"
+          src="/mascots/claude-body.png"
+          alt="Claude body"
           draggable={false}
-          style={imgStyle}
+          style={bodyStyle}
+        />
+
+        {/* Left eye — moves independently */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/mascots/eye-left.png"
+          alt=""
+          draggable={false}
+          aria-hidden
+          style={{
+            ...makeEyeStyle(),
+            left: eyeLeftX,
+            top: eyeLeftY,
+          }}
+        />
+
+        {/* Right eye — moves independently */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/mascots/eye-right.png"
+          alt=""
+          draggable={false}
+          aria-hidden
+          style={{
+            ...makeEyeStyle(),
+            left: eyeRightX,
+            top: eyeRightY,
+          }}
         />
 
         {/* Mood indicator */}
