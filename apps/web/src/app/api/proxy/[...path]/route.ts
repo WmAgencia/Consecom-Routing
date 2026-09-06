@@ -30,7 +30,9 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ path: strin
 async function proxy(req: NextRequest, ctx: { params: Promise<{ path: string[] }> }) {
   const { path } = await ctx.params;
   const upstreamPath = path.join('/');
-  const url = `${API_BASE}/v1/${upstreamPath}${req.nextUrl.search}`;
+  // The browser calls /api/proxy/v1/admin/me, so `path` = ['v1', 'admin', 'me']
+  // and we just forward upstreamPath as-is (no extra prefix needed).
+  const url = `${API_BASE}/${upstreamPath}${req.nextUrl.search}`;
 
   // Build headers
   const headers = new Headers();

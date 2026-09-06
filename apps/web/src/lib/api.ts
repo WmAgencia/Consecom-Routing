@@ -15,8 +15,8 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     .map((c) => `${c.name}=${c.value}`)
     .join('; ');
 
-  // Em produção, prepende /api/admin/proxy pra usar o route handler proxy que funciona
-  const url = USE_PROXY ? `/api/admin/proxy${path}` : `${API_BASE}${path}`;
+  // Em produção, prepende /api/proxy pra usar o route handler proxy
+  const url = USE_PROXY ? `/api/proxy${path}` : `${API_BASE}${path}`;
 
   const res = await fetch(url, {
     ...init,
