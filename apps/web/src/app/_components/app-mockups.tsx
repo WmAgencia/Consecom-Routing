@@ -88,7 +88,7 @@ export function CodexMockup() {
 
           <text y="44" fill="#10A37F" fontWeight="700">▌</text>
           <text x="14" y="44" fill="#7A8478">Model:</text>
-          <text x="70" y="44" fill="#10A37F" fontWeight="700">claude-haiku-4-5-puter</text>
+          <text x="70" y="44" fill="#10A37F" fontWeight="700">claude-haiku-4-5</text>
 
           <text y="66" fill="#10A37F" fontWeight="700">▌</text>
           <text x="14" y="66" fill="#7A8478">Working on</text>
@@ -143,7 +143,7 @@ export function CodexMockup() {
         <text x="120" y="429" fill="#7A8478">·</text>
         <text x="135" y="429" fill="#D4D4D4">tokens: 2.3k</text>
         <text x="220" y="429" fill="#7A8478">·</text>
-        <text x="235" y="429" fill="#D4D4D4">claude-haiku-4-5-puter</text>
+        <text x="235" y="429" fill="#D4D4D4">claude-haiku-4-5</text>
         <text x="400" y="429" fill="#7A8478">·</text>
         <text x="412" y="429" fill="#10A37F" fontWeight="700">$0.012</text>
       </g>

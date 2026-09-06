@@ -28,8 +28,8 @@ export default function CodexPage() {
         </h1>
         <p className="mt-3 max-w-2xl text-fg-muted">
           Configure o Codex CLI em 30 segundos para usar nossos modelos Claude
-          com roteamento inteligente. Puter como primario, fallback automatico
-          para OpenRouter, Poyo e Anthropic.
+          com roteamento inteligente. Multi-provider com fallback automatico
+          para garantir disponibilidade maxima.
         </p>
       </div>
 
@@ -57,9 +57,9 @@ export default function CodexPage() {
         </h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <UsageCard title="Pergunta rapida" command='codex "explique este regex"' />
-          <UsageCard title="Tarefa pesada" command="codex -m claude-opus-5-puter revisa performance" />
-          <UsageCard title="Git commit" command="git diff | codex -m claude-sonnet-5-puter gere commit" />
-          <UsageCard title="REPL interativo" command="codex --model claude-opus-5-puter" />
+          <UsageCard title="Tarefa pesada" command="codex -m claude-opus-5 revisa performance" />
+          <UsageCard title="Git commit" command="git diff | codex -m claude-sonnet-5 gere commit" />
+          <UsageCard title="REPL interativo" command="codex --model claude-opus-5" />
         </div>
       </section>
 
@@ -71,9 +71,9 @@ export default function CodexPage() {
           Modelos disponiveis
         </h2>
         <div className="grid gap-3 sm:grid-cols-2">
-          <ModelCard code="claude-haiku-4-5-puter" tag="Recomendado" tagTone="success" desc="Rapido + barato, Puter" />
-          <ModelCard code="claude-sonnet-5-puter" tag="Equilibrado" tagTone="accent" desc="Coding + chat, Puter" />
-          <ModelCard code="claude-opus-5-puter" tag="Pesado" tagTone="warn" desc="Tarefas complexas, Puter" />
+          <ModelCard code="claude-haiku-4-5" tag="Recomendado" tagTone="success" desc="Rapido + barato, alta disponibilidade" />
+          <ModelCard code="claude-sonnet-5" tag="Equilibrado" tagTone="accent" desc="Coding + chat, alta disponibilidade" />
+          <ModelCard code="claude-opus-5" tag="Pesado" tagTone="warn" desc="Tarefas complexas, alta disponibilidade" />
           <ModelCard code="claude-haiku-4-5" tag="Fallback" tagTone="muted" desc="Anthropic direto" />
         </div>
       </section>

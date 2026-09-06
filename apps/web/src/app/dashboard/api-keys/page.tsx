@@ -100,7 +100,7 @@ export default async function ApiKeysPage() {
 {`curl -X POST https://api.consecom.com.br/v1/chat/completions \\
   -H "Authorization: Bearer ${data.data[0]?.keyPrefix ?? 'sk_cr_live_'}..." \\
   -H "Content-Type: application/json" \\
-  -d '{"model":"claude-haiku-4-5-puter","messages":[{"role":"user","content":"oi"}]}'`}
+  -d '{"model":"claude-haiku-4-5","messages":[{"role":"user","content":"oi"}]}'`}
         </pre>
       </div>
     </div>
