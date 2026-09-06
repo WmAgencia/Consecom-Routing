@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { LiveTerminal } from './_components/live-terminal';
 import { PricingCards } from './_components/pricing-cards';
 import { HowItWorks } from './_components/how-it-works';
-import { Clawd } from './_components/clawd';
+import { Clawd } from './_components/clawd'; // Claude mascot (3D image)
 
 export default function LandingPage() {
   return (
