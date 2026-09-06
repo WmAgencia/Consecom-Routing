@@ -17,6 +17,8 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
 
   // Em produção, prepende /api/proxy pra usar o route handler proxy
   const url = USE_PROXY ? `/api/proxy${path}` : `${API_BASE}${path}`;
+  // eslint-disable-next-line no-console
+  console.log('[apiFetch]', path, '→', url, 'cookies:', cookieHeader ? `${cookieHeader.slice(0, 50)}...` : 'none');
 
   const res = await fetch(url, {
     ...init,
@@ -27,8 +29,13 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     },
     cache: 'no-store',
   });
+  // eslint-disable-next-line no-console
+  console.log('[apiFetch]', path, '←', res.status, res.statusText);
   if (!res.ok) {
-    throw new ApiError(res.status, await res.text());
+    const body = await res.text();
+    // eslint-disable-next-line no-console
+    console.log('[apiFetch]', path, 'body:', body.slice(0, 200));
+    throw new ApiError(res.status, body);
   }
   return res.json() as Promise<T>;
 }
