@@ -33,12 +33,6 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const admin = await requireAdminSession();
-  const h = await headers();
-  const pathname = h.get('x-invoke-path') ?? h.get('x-pathname') ?? '/admin';
-  const isActive = (href: string) =>
-    href === '/admin'
-      ? pathname === '/admin' || pathname === '/admin/'
-      : pathname.startsWith(href);
 
   return (
     <div className="flex min-h-screen">
@@ -47,24 +41,12 @@ export default async function AdminLayout({
           Consecom · Master
         </Link>
         <nav className="mt-8 space-y-1">
-          <NavItem href="/admin" active={isActive('/admin')}>
-            Dashboard
-          </NavItem>
-          <NavItem href="/admin/customers" active={isActive('/admin/customers')}>
-            Clientes
-          </NavItem>
-          <NavItem href="/admin/plans" active={isActive('/admin/plans')}>
-            Planos
-          </NavItem>
-          <NavItem href="/admin/models" active={isActive('/admin/models')}>
-            Modelos
-          </NavItem>
-          <NavItem href="/admin/costs" active={isActive('/admin/costs')}>
-            Custos
-          </NavItem>
-          <NavItem href="/admin/audit-logs" active={isActive('/admin/audit-logs')}>
-            Audit
-          </NavItem>
+          <NavItem href="/admin">Dashboard</NavItem>
+          <NavItem href="/admin/customers">Clientes</NavItem>
+          <NavItem href="/admin/plans">Planos</NavItem>
+          <NavItem href="/admin/models">Modelos</NavItem>
+          <NavItem href="/admin/costs">Custos</NavItem>
+          <NavItem href="/admin/audit-logs">Audit</NavItem>
         </nav>
 
         <div className="absolute bottom-4 left-4 right-4 w-52">

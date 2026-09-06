@@ -63,6 +63,21 @@ async function proxy(req: NextRequest, ctx: { params: Promise<{ path: string[] }
   for (const [k, v] of res.headers.entries()) {
     const lower = k.toLowerCase();
     if (['transfer-encoding', 'connection', 'keep-alive'].includes(lower)) continue;
+    if (lower === 'set-cookie') {
+      // Rewrite cookie: strip Domain (was set to localhost by upstream API)
+      // and add SameSite=None + Secure so it works across redirects
+      let cookieValue = v;
+      // Remove Domain attribute
+      cookieValue = cookieValue.replace(/;\s*Domain=[^;]+/gi, '');
+      // Force SameSite=None; Secure for cross-site compatibility
+      cookieValue = cookieValue.replace(/;\s*SameSite=[^;]+/gi, '');
+      if (!/;\s*Secure/i.test(cookieValue)) {
+        cookieValue += '; Secure';
+      }
+      cookieValue += '; SameSite=None';
+      outHeaders.append(k, cookieValue);
+      continue;
+    }
     outHeaders.set(k, v);
   }
   return new NextResponse(res.body, { status: res.status, headers: outHeaders });
