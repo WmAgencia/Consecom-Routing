@@ -17,7 +17,7 @@ export function CreateKeyButton() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/v1/api-keys', {
+      const res = await fetch('/api/proxy/v1/api-keys', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

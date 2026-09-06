@@ -34,7 +34,7 @@ export function CheckoutButton({ planCode: _planCode }: { planCode: string }) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/v1/billing/checkout', {
+      const res = await fetch('/api/proxy/v1/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

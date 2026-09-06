@@ -22,7 +22,7 @@ export function ActivatePlanButton({ customerId }: { customerId: string }) {
 
   useEffect(() => {
     if (!open) return;
-    fetch('/v1/admin/plans', { credentials: 'include' })
+    fetch('/api/proxy/v1/admin/plans', { credentials: 'include' })
       .then((r) => r.json())
       .then((d) => setPlans((d.data ?? []).filter((p: Plan) => p.active)))
       .catch(() => setPlans([]));

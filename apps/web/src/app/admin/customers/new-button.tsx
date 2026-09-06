@@ -37,7 +37,7 @@ export function NewCustomerButton() {
 
   useEffect(() => {
     if (!open) return;
-    fetch('/v1/admin/plans', { credentials: 'include' })
+    fetch('/api/proxy/v1/admin/plans', { credentials: 'include' })
       .then((r) => r.json())
       .then((d) => setPlans((d.data ?? []).filter((p: Plan) => p.active)))
       .catch(() => setPlans([]));
@@ -71,7 +71,7 @@ export function NewCustomerButton() {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch('/v1/admin/customers', {
+      const res = await fetch('/api/proxy/v1/admin/customers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

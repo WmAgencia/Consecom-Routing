@@ -15,7 +15,7 @@ export default function AdminLoginPage() {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch('/v1/admin/login', {
+      const res = await fetch('/api/admin/proxy/v1/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

@@ -15,7 +15,7 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/v1/auth/login', {
+      const res = await fetch('/api/proxy/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
