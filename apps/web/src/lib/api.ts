@@ -2,7 +2,9 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import type { AuthResponse } from '@consecom/shared';
 
-// Usa proxy local em produção Vercel, ou API direta em desenvolvimento
+// Em produção usa o route handler proxy local (/api/v1/[...path]),
+// em dev usa API direta. O rewrite do next.config.mjs não funciona
+// com output: 'standalone', então roteamos via route handler.
 const USE_PROXY = process.env.NODE_ENV === 'production';
 const API_BASE = process.env.PUBLIC_API_URL ?? 'http://localhost:3001';
 
@@ -14,8 +16,8 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     .map((c) => `${c.name}=${c.value}`)
     .join('; ');
 
-  // Em produção usa proxy local, em dev usa API direta
-  const url = USE_PROXY ? path : `${API_BASE}${path}`;
+  // Em produção, prepende /api/v1 pra usar o route handler proxy
+  const url = USE_PROXY ? `/api/v1${path}` : `${API_BASE}${path}`;
 
   const res = await fetch(url, {
     ...init,
