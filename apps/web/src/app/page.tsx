@@ -4,6 +4,8 @@ import { PricingCards } from './_components/pricing-cards';
 import { HowItWorks } from './_components/how-it-works';
 import { Clawd } from './_components/clawd'; // Claude mascot (3D image)
 import { CodexMockup, ClaudeCodeMockup } from './_components/app-mockups';
+import { Reveal } from './_components/reveal';
+import { SocialProof } from './_components/social-proof';
 
 export default function LandingPage() {
   return (
@@ -142,6 +144,11 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Social proof */}
+      <Reveal>
+        <SocialProof />
+      </Reveal>
+
       {/* Duas formas de usar */}
       <section
         id="duas-formas"
@@ -149,71 +156,73 @@ export default function LandingPage() {
         className="border-y border-white/5 bg-bg-subtle/40 py-24"
       >
         <div className="mx-auto max-w-6xl px-6">
-          <div className="mb-12 max-w-2xl">
-            <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-brasa-500">
-              [ 01 ] — Como usar
-            </div>
-            <h2 className="font-serif text-4xl tracking-[-0.03em] md:text-5xl">
-              CLI ou App.{' '}
-              <em className="text-brasa-500 not-italic">A mesma key</em> nos dois.
-            </h2>
-            <p className="mt-3 text-fg-muted">
-              Funciona com qualquer ferramenta que aceite base URL customizada.
-            </p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Codex card */}
-            <div className="group overflow-hidden rounded-3xl border border-white/5 bg-bg-panel/60 p-6 shadow-glow backdrop-blur-xl transition hover:border-emerald-500/30">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-glow">
-                  <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="4 17 10 11 4 5" />
-                    <line x1="12" y1="19" x2="20" y2="19" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-serif text-xl text-fg">Com o Codex</h3>
-                  <p className="text-xs text-fg-muted">OpenAI CLI direto do seu shell</p>
-                </div>
+          <Reveal>
+            <div className="mb-12 max-w-2xl">
+              <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-brasa-500">
+                [ 01 ] — Como usar
               </div>
-
-              <div className="mb-4 overflow-hidden rounded-2xl border border-emerald-500/20 shadow-2xl">
-                <CodexMockup />
-              </div>
-
-              <p className="text-sm text-fg-muted">
-                Funciona com <code className="rounded bg-bg-subtle px-1.5 py-0.5 font-mono text-xs">codex</code>,{' '}
-                <code className="rounded bg-bg-subtle px-1.5 py-0.5 font-mono text-xs">claude</code>, e qualquer CLI que respeite o padrão OpenAI.
+              <h2 className="font-serif text-4xl tracking-[-0.03em] md:text-5xl">
+                CLI ou App.{' '}
+                <em className="text-brasa-500 not-italic">A mesma key</em> nos dois.
+              </h2>
+              <p className="mt-3 text-fg-muted">
+                Funciona com qualquer ferramenta que aceite base URL customizada.
               </p>
             </div>
 
-            {/* Claude Code app card */}
-            <div className="group overflow-hidden rounded-3xl border border-white/5 bg-bg-panel/60 p-6 shadow-glow backdrop-blur-xl transition hover:border-brasa-500/30">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brasa-500 to-brasa-700 shadow-glow">
-                  <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                    <line x1="3" y1="9" x2="21" y2="9" />
-                    <line x1="9" y1="21" x2="9" y2="9" />
-                  </svg>
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Codex card */}
+              <div className="group overflow-hidden rounded-3xl border border-white/5 bg-bg-panel/60 p-6 shadow-glow backdrop-blur-xl transition hover:border-emerald-500/30 hover:-translate-y-1 hover:shadow-glow-lg">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-glow">
+                    <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="4 17 10 11 4 5" />
+                      <line x1="12" y1="19" x2="20" y2="19" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-serif text-xl text-fg">Com o Codex</h3>
+                    <p className="text-xs text-fg-muted">OpenAI CLI direto do seu shell</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-serif text-xl text-fg">Com o Claude Code</h3>
-                  <p className="text-xs text-fg-muted">App desktop oficial da Anthropic</p>
+
+                <div className="mb-4 overflow-hidden rounded-2xl border border-emerald-500/20 shadow-2xl">
+                  <CodexMockup />
                 </div>
+
+                <p className="text-sm text-fg-muted">
+                  Funciona com <code className="rounded bg-bg-subtle px-1.5 py-0.5 font-mono text-xs">codex</code>,{' '}
+                  <code className="rounded bg-bg-subtle px-1.5 py-0.5 font-mono text-xs">claude</code>, e qualquer CLI que respeite o padrão OpenAI.
+                </p>
               </div>
 
-              <div className="mb-4 overflow-hidden rounded-2xl border border-brasa-500/20 shadow-2xl">
-                <ClaudeCodeMockup />
-              </div>
+              {/* Claude Code app card */}
+              <div className="group overflow-hidden rounded-3xl border border-white/5 bg-bg-panel/60 p-6 shadow-glow backdrop-blur-xl transition hover:border-brasa-500/30 hover:-translate-y-1 hover:shadow-glow-lg">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brasa-500 to-brasa-700 shadow-glow">
+                    <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                      <line x1="3" y1="9" x2="21" y2="9" />
+                      <line x1="9" y1="21" x2="9" y2="9" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-serif text-xl text-fg">Com o Claude Code</h3>
+                    <p className="text-xs text-fg-muted">App desktop oficial da Anthropic</p>
+                  </div>
+                </div>
 
-              <p className="text-sm text-fg-muted">
-                Funciona com <strong className="text-fg">Claude Code app</strong>, Cursor, Windsurf, Continue.dev e qualquer
-                app que aceite custom base URL.
-              </p>
+                <div className="mb-4 overflow-hidden rounded-2xl border border-brasa-500/20 shadow-2xl">
+                  <ClaudeCodeMockup />
+                </div>
+
+                <p className="text-sm text-fg-muted">
+                  Funciona com <strong className="text-fg">Claude Code app</strong>, Cursor, Windsurf, Continue.dev e qualquer
+                  app que aceite custom base URL.
+                </p>
+              </div>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -224,38 +233,42 @@ export default function LandingPage() {
         className="py-24"
       >
         <div className="mx-auto max-w-6xl px-6">
-          <div className="mb-12 max-w-2xl">
-            <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-brasa-500">
-              [ 02 ] — Como funciona
+          <Reveal>
+            <div className="mb-12 max-w-2xl">
+              <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-brasa-500">
+                [ 02 ] — Como funciona
+              </div>
+              <h2 className="font-serif text-4xl tracking-[-0.03em] md:text-5xl">
+                Você compra.{' '}
+                <em className="text-brasa-500 not-italic">A gente entrega</em> a key.
+              </h2>
+              <p className="mt-3 text-fg-muted">
+                Três passos. Sem cadastro complicado. Sem cartão internacional.
+              </p>
             </div>
-            <h2 className="font-serif text-4xl tracking-[-0.03em] md:text-5xl">
-              Você compra.{' '}
-              <em className="text-brasa-500 not-italic">A gente entrega</em> a key.
-            </h2>
-            <p className="mt-3 text-fg-muted">
-              Três passos. Sem cadastro complicado. Sem cartão internacional.
-            </p>
-          </div>
-          <HowItWorks />
+            <HowItWorks />
+          </Reveal>
         </div>
       </section>
 
       {/* Pricing */}
       <section id="planos" data-squisher="true" className="py-24">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="mb-12 text-center">
-            <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-brasa-500">
-              [ 03 ] — Planos
+          <Reveal>
+            <div className="mb-12 text-center">
+              <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-brasa-500">
+                [ 03 ] — Planos
+              </div>
+              <h2 className="font-serif text-4xl tracking-[-0.03em] md:text-5xl">
+                Pague pelo tempo.{' '}
+                <em className="text-brasa-500 not-italic">Use à vontade.</em>
+              </h2>
+              <p className="mt-3 text-fg-muted">
+                Sem limite de mensagens. Sem contar tokens. Sem renovação surpresa.
+              </p>
             </div>
-            <h2 className="font-serif text-4xl tracking-[-0.03em] md:text-5xl">
-              Pague pelo tempo.{' '}
-              <em className="text-brasa-500 not-italic">Use à vontade.</em>
-            </h2>
-            <p className="mt-3 text-fg-muted">
-              Sem limite de mensagens. Sem contar tokens. Sem renovação surpresa.
-            </p>
-          </div>
-          <PricingCards />
+            <PricingCards />
+          </Reveal>
         </div>
       </section>
 
