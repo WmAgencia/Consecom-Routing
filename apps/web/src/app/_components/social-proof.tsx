@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 // Social proof section with animated counters
 // Numbers: substituir pelos reais quando disponíveis
 const STATS = [
