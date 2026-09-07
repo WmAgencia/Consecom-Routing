@@ -6,12 +6,11 @@ interface RevealProps {
   children: ReactNode;
   delay?: number;
   className?: string;
-  as?: 'div' | 'section' | 'article' | 'li' | 'span';
 }
 
 // Triggers fade-up animation when element enters viewport.
 // Works without IntersectionObserver polyfills (uses fallback).
-export function Reveal({ children, delay = 0, className = '', as: Tag = 'div' }: RevealProps) {
+export function Reveal({ children, delay = 0, className = '' }: RevealProps) {
   const ref = useRef<HTMLElement | null>(null);
   const [shown, setShown] = useState(false);
 
@@ -45,21 +44,16 @@ export function Reveal({ children, delay = 0, className = '', as: Tag = 'div' }:
     return () => observer.disconnect();
   }, [delay]);
 
-  const TagAny = Tag as keyof JSX.IntrinsicElements;
-  const style = {
+  const style: React.CSSProperties = {
     opacity: shown ? 1 : 0,
     transform: shown ? 'translateY(0)' : 'translateY(20px)',
     transition: `opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) ${delay}ms, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) ${delay}ms`,
-    willChange: 'opacity, transform' as const,
+    willChange: 'opacity, transform',
   };
 
   return (
-    <TagAny
-      ref={ref as never}
-      style={style}
-      className={className}
-    >
+    <div ref={ref} style={style} className={className}>
       {children}
-    </TagAny>
+    </div>
   );
 }
