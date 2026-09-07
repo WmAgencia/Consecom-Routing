@@ -1,12 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 type LoginMode = 'customer' | 'admin';
 
+// Force dynamic — /login uses useSearchParams which can't be prerendered.
+export const dynamic = 'force-dynamic';
+
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginFallback />}>
+      <LoginInner />
+    </Suspense>
+  );
+}
+
+function LoginFallback() {
+  return (
+    <main className="flex min-h-screen items-center justify-center">
+      <div className="font-mono text-xs text-fg-muted uppercase tracking-widest">Carregando…</div>
+    </main>
+  );
+}
+
+function LoginInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialMode: LoginMode = searchParams.get('type') === 'admin' ? 'admin' : 'customer';
