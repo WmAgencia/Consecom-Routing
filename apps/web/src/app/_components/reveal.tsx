@@ -11,7 +11,7 @@ interface RevealProps {
 // Triggers fade-up animation when element enters viewport.
 // Works without IntersectionObserver polyfills (uses fallback).
 export function Reveal({ children, delay = 0, className = '' }: RevealProps) {
-  const ref = useRef<HTMLElement | null>(null);
+  const ref = useRef<HTMLDivElement | null>(null);
   const [shown, setShown] = useState(false);
 
   useEffect(() => {
