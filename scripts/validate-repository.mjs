@@ -14,10 +14,39 @@ const services = [
 ];
 
 const failures = [];
+const requiredRootFiles = [
+  ".env.example",
+  ".gitignore",
+  "CHANGELOG.md",
+  "CONTRIBUTING.md",
+  "README.md",
+  "SECURITY.md",
+  "docs/ARCHITECTURE.md",
+  "docs/DEPLOYMENT.md",
+  "docs/ENVIRONMENT.md",
+  "docs/INCIDENTS.md",
+  "docs/OPERATIONS.md",
+];
+
+for (const file of requiredRootFiles) {
+  if (!existsSync(join(root, file))) failures.push(`Arquivo essencial ausente: ${file}`);
+}
+
 for (const service of services) {
   for (const file of ["index.tsx", "package.json", "Dockerfile", "railway.json"]) {
     const path = join(root, "services", service, file);
     if (!existsSync(path)) failures.push(`Arquivo ausente: services/${service}/${file}`);
+  }
+}
+
+for (const path of files(root)) {
+  const relativePath=relative(root,path).replaceAll("\\","/");
+  if((relativePath===".env"||relativePath.startsWith(".env."))&&relativePath!==".env.example"){
+    failures.push(`Arquivo de ambiente não permitido: ${relativePath}`);
+  }
+  if(path.endsWith(".json")){
+    try{JSON.parse(readFileSync(path,"utf8"))}
+    catch{failures.push(`JSON inválido: ${relativePath}`)}
   }
 }
 
@@ -43,6 +72,17 @@ for (const path of files(root)) {
   try { content = readFileSync(path, "utf8"); } catch { continue; }
   for (const pattern of secretPatterns) {
     if (pattern.test(content)) failures.push(`Possível segredo em ${relative(root, path)} (${pattern})`);
+  }
+}
+
+const publicCopy=[
+  join(root,"README.md"),
+  join(root,"docs","BRANDING.md"),
+];
+const internalProviderNames=/\b(deepseek|puter|openrouter|poyo)\b/i;
+for(const path of publicCopy){
+  if(internalProviderNames.test(readFileSync(path,"utf8"))){
+    failures.push(`Fornecedor interno citado em comunicação pública: ${relative(root,path)}`);
   }
 }
 

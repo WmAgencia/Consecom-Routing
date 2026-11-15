@@ -1,0 +1,6 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Vulnerabilidade ou credencial exposta
+    url: https://github.com/WmAgencia/Consecom-Routing/security
+    about: Não publique informações sensíveis em issues.
+

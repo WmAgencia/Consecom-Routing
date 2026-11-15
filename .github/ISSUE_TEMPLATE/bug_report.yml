@@ -1,0 +1,39 @@
+name: Relatar problema
+description: Registrar um defeito reproduzível sem dados sensíveis
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Comportamento observado
+      description: Não inclua chaves, cookies, senhas ou dados de clientes.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento esperado
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Como reproduzir
+    validations:
+      required: true
+  - type: dropdown
+    id: service
+    attributes:
+      label: Área
+      options:
+        - API
+        - Portal
+        - Checkout
+        - Landing
+        - Painel técnico
+        - Infraestrutura
+        - Não identificado
+    validations:
+      required: true
+

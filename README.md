@@ -1,5 +1,8 @@
 # Consecom AI
 
+[![Validate repository](https://github.com/WmAgencia/Consecom-Routing/actions/workflows/validate.yml/badge.svg)](https://github.com/WmAgencia/Consecom-Routing/actions/workflows/validate.yml)
+[![CodeQL](https://github.com/WmAgencia/Consecom-Routing/actions/workflows/codeql.yml/badge.svg)](https://github.com/WmAgencia/Consecom-Routing/actions/workflows/codeql.yml)
+
 Repositório oficial da plataforma Consecom AI em produção na Railway.
 
 A Consecom AI oferece uma API compatível com as ferramentas do Claude Code, tanto no Desktop quanto na CLI. Os nomes e perfis de modelos apresentados ao cliente fazem parte da experiência Consecom e são mantidos estáveis para evitar mudanças na configuração dos usuários.
@@ -34,6 +37,16 @@ Copie `.env.example` para um arquivo local não versionado e preencha somente os
 ## Implantação
 
 Consulte [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). O estado documentado em [docs/RAILWAY.md](docs/RAILWAY.md) foi extraído do ambiente de produção em 15 de novembro de 2026.
+
+Documentação complementar:
+
+- [Arquitetura](docs/ARCHITECTURE.md)
+- [Catálogo de serviços](docs/SERVICES.md)
+- [Variáveis de ambiente](docs/ENVIRONMENT.md)
+- [Operação](docs/OPERATIONS.md)
+- [Resposta a incidentes](docs/INCIDENTS.md)
+- [Contribuição](CONTRIBUTING.md)
+- [Segurança](SECURITY.md)
 
 ## Comunicação do produto
 

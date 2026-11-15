@@ -1,0 +1,7 @@
+* @WmAgencia
+/services/consecom-checkout/ @WmAgencia
+/services/consecom-ai-portal/ @WmAgencia
+/services/consecom-proxy-dashboard/ @WmAgencia
+/infra/ @WmAgencia
+/.github/ @WmAgencia
+
