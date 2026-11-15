@@ -267,3 +267,11 @@ body:has(.cc-hero) .darkband {background:#141213!important;border-color:#433331!
   .cc-hero-clouds svg{animation:none!important}
   .cc-hero-beam{transform:translateX(-50%)}
 }
+
+/* Show exactly one silhouette for the active viewport; never stack legacy shapes. */
+.cc-hero-clouds svg.cc-cloud-art--desktop{display:block}
+.cc-hero-clouds svg.cc-cloud-art--mobile{display:none}
+@media(max-width:820px){
+  .cc-hero-clouds svg.cc-cloud-art--desktop{display:none}
+  .cc-hero-clouds svg.cc-cloud-art--mobile{display:block}
+}
