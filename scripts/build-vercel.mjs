@@ -16,10 +16,19 @@ if (!match) {
 }
 
 let html = JSON.parse(match[1]);
+const previousHero = /<section class="reference-hero (?:exact-reference-hero|cc-scene)"[\s\S]*?<\/section><\/div>/;
+if (!previousHero.test(html)) {
+  throw new Error("Landing hero replacement target not found: refusing to publish the old hero");
+}
 html = html
-  .replace(/<section class="reference-hero exact-reference-hero"[\s\S]*?<\/section><\/div>/, `${hero.trim()}</div>`)
+  .replace(previousHero, `${hero.trim()}</div>`)
+  .replace(/<script>\(\(\)=>\{const scene=document.getElementById\('cloud-scene'\)[\s\S]*?<\/script>/g, "")
   .replace(/<div class="section-heading ref-plan-title">[\s\S]*?<div class="pricegrid">\s*<article class="plan ref-trial">[\s\S]*?<\/article>/, trial.trim())
   .replace("</style>", `${styles}\n</style>`);
+
+if (!html.includes('class="cc-hero"') || !html.includes('cc-hero-number-right') || !html.includes('11,3x') || !html.includes('cc-hero-clouds')) {
+  throw new Error("Cloud Code hero post-build validation failed");
+}
 
 await rm(outputPath, { recursive: true, force: true });
 await mkdir(outputPath, { recursive: true });
