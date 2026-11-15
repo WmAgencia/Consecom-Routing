@@ -206,13 +206,18 @@ body:has(.cc-hero) { background:var(--cc-ink)!important; }
   vector-effect:non-scaling-stroke;
 }
 .cc-cloud-echo {
-  fill:none;
-  opacity:.77;
+  fill:none!important;
+  stroke:#e5e1e3!important;
+  stroke-width:1.15;
+  opacity:.78;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
 }
 .cc-cloud-echo path {
   fill:none!important;
-  stroke:#e5e1e3;
-  stroke-width:1.2;
+  stroke:inherit;
+  stroke-width:inherit;
   stroke-linecap:round;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
