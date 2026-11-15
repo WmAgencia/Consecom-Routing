@@ -8,6 +8,7 @@
     "services/*"
   ],
   "scripts": {
+    "build:vercel": "node scripts/build-vercel.mjs",
     "validate": "node scripts/validate-repository.mjs",
     "check:services": "node scripts/check-services.mjs",
     "check": "npm run validate && npm run check:services",
