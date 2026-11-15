@@ -8,6 +8,7 @@ const source = await readFile(sourcePath, "utf8");
 const hero = await readFile(resolve(root, "services/consecom-landing-v3/hero-v8.html"), "utf8");
 const trial = await readFile(resolve(root, "services/consecom-landing-v3/trial-v8.html"), "utf8");
 const styles = await readFile(resolve(root, "services/consecom-landing-v3/v8.css"), "utf8");
+const heroArtwork = await readFile(resolve(root, "assets/consecom-hero-smoke-v2.png"));
 const match = source.match(/^const html=("(?:[^"\\]|\\.)*");/s);
 
 if (!match) {
@@ -23,6 +24,7 @@ html = html
 await rm(outputPath, { recursive: true, force: true });
 await mkdir(outputPath, { recursive: true });
 await writeFile(resolve(outputPath, "index.html"), html);
+await writeFile(resolve(outputPath, "consecom-hero-smoke-v2.png"), heroArtwork);
 await writeFile(
   resolve(outputPath, "healthz.json"),
   `${JSON.stringify({ ok: true, service: "consecom-routing", platform: "vercel" })}\n`,
