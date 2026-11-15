@@ -27,8 +27,8 @@
 /* Cloud Code: reduced SVG clouds, non-obscuring metrics and pinned transition. */
 .container:has(>.cc-hero){width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
 .container:has(>.cc-hero)>.nav{display:none!important}
-.cc-hero{position:relative;isolation:isolate;height:175svh;min-height:0;background:#0b090c;color:#fff}
-.cc-hero-sticky{position:sticky;top:0;height:100svh;min-height:620px;overflow:hidden;isolation:isolate;background:#0c0a0d}
+.cc-hero{position:relative;isolation:isolate;height:100svh;min-height:0;background:#0b090c;color:#fff}
+.cc-hero-sticky{position:relative;top:0;height:100%;min-height:0;overflow:hidden;isolation:isolate;background:#0c0a0d}
 .cc-hero-atmosphere{position:absolute;z-index:0;inset:0;background:radial-gradient(ellipse at 50% 75%,#271014 0%,#141013 39%,#0b090c 76%),linear-gradient(110deg,#161316,#0b0a0d 76%);pointer-events:none}
 .cc-hero-atmosphere:after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,transparent 36%,#09080b85 100%);pointer-events:none}
 .cc-hero-beam{position:absolute;left:50%;top:28%;bottom:-8%;width:clamp(112px,9.2vw,170px);transform:translate3d(-50%,var(--cc-beam-shift,0px),0);background:linear-gradient(180deg,transparent 0%,#641b17 7%,#c53626 20%,#f05233 45%,#fc643c 64%,#b22b20 91%,#561219 100%);box-shadow:0 0 56px 9px #d53c303c,0 0 160px 33px #ce302621;opacity:.96}
@@ -42,7 +42,7 @@
 .cc-hero-number-right{left:57.5%;top:45%;text-align:left}
 .cc-hero-number strong{display:block;font:850 clamp(58px,5.3vw,95px)/.92 Inter,Arial,sans-serif;letter-spacing:-.065em;color:#f2eef1}
 .cc-hero-number span{display:block;margin-top:14px;font:400 clamp(11px,.9vw,15px)/1.35 ui-monospace,Consolas,monospace;letter-spacing:.065em;color:#ddd6d8;text-transform:uppercase;white-space:nowrap}
-.cc-hero-clouds{position:absolute;z-index:4;bottom:0;left:0;width:100%;height:clamp(200px,29svh,330px);transform:translate3d(0,var(--cc-cloud-rise,0px),0);pointer-events:none;will-change:transform}
+.cc-hero-clouds{position:absolute;z-index:4;bottom:0;left:0;width:100%;height:clamp(230px,33svh,360px);transform:translate3d(0,var(--cc-cloud-rise,0px),0);pointer-events:none;will-change:transform}
 .cc-hero-clouds svg{position:absolute;left:0;bottom:0;width:100%;height:100%;overflow:visible}
 .cc-cloud-bank path{fill:#0a090c;stroke:#ede9ed;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .cc-cloud-bank-left{animation:ccCloudBreatheL 12s ease-in-out infinite alternate;transform-origin:40% 90%}
@@ -50,7 +50,7 @@
 @keyframes ccCloudBreatheL{from{transform:translate3d(-5px,4px,0)}to{transform:translate3d(9px,-7px,0)}}
 @keyframes ccCloudBreatheR{from{transform:translate3d(8px,-5px,0)}to{transform:translate3d(-8px,7px,0)}}
 @media(max-width:820px){
-.cc-hero{height:162svh}
+.cc-hero{height:100svh}
 .cc-hero-sticky{min-height:0;height:100svh}
 .cc-hero-heading{top:19%;width:calc(100% - 22px)}
 .cc-hero-heading h1{font-size:clamp(46px,10.6vw,80px)!important;letter-spacing:-.075em!important}
@@ -60,7 +60,7 @@
 .cc-hero-number-right{top:47%;left:auto;right:7%}
 .cc-hero-number strong{font-size:clamp(42px,10.1vw,70px)}
 .cc-hero-number span{font-size:clamp(9px,2.1vw,12px);letter-spacing:.025em}
-.cc-hero-clouds{height:clamp(170px,29svh,300px)}
+.cc-hero-clouds{height:clamp(180px,29svh,270px)}
 }
 @media(max-width:410px){
 .cc-hero-number-left{left:6%}.cc-hero-number-right{right:6%}
@@ -68,3 +68,11 @@
 .cc-hero-heading{top:20%}
 }
 @media(prefers-reduced-motion:reduce){.cc-hero-clouds{will-change:auto}.cc-cloud-bank-left,.cc-cloud-bank-right{animation:none!important}.cc-hero-beam{transform:translateX(-50%)}}
+
+/* Seamless transition: the complete bottom contours lead straight into the next section. */
+.container:has(>.cc-hero)+.marquee{display:none!important}
+body:has(.cc-hero) #como-funciona{margin-top:0!important;padding-top:clamp(44px,5vw,80px)!important;background:#151216!important;border-top:1px solid #292025}
+body:has(.cc-hero) #como-funciona .section-heading{margin-top:0}
+.cc-hero-clouds svg{overflow:visible}
+.cc-cloud-bank path{stroke-width:1.15;fill:#0a090c;stroke:#e8e3e8}
+@media(max-width:820px){body:has(.cc-hero) #como-funciona{padding-top:42px!important}}
