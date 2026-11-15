@@ -1,0 +1,13 @@
+{
+  "name": "consecom-ai-platform",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "validate": "node scripts/validate-repository.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
+

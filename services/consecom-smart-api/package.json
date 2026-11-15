@@ -1,0 +1,11 @@
+{
+  "name": "@consecom/consecom-smart-api",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "bun run index.tsx",
+    "check": "bun build index.tsx --target=bun --outfile=/tmp/consecom-check.js"
+  }
+}
+

@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+*.log
+*.pem
+*.key
+cookies*.txt
+admin_cookies*.txt
+credentials*.json
+secrets/
+

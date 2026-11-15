@@ -1,0 +1,9 @@
+{
+  "source": {
+    "image": "redis:8.2@sha256:7d1e4ce8b9395088377ab382d1f6cfdbd13b3690795198a0399ab8d683064d6d"
+  },
+  "deploy": {
+    "startCommand": "/bin/sh -c 'exec docker-entrypoint.sh redis-server --requirepass \"$REDIS_PASSWORD\" --appendonly no --save \"\"'",
+    "restartPolicyType": "ON_FAILURE"
+  }
+}

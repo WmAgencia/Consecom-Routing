@@ -1,0 +1,9 @@
+{
+  "source": {
+    "image": "ghcr.io/railwayapp-templates/postgres-ssl:18@sha256:469c779c7c57ec6bad4670a0a3cb5a830aa6e0ce4f3707137608de5223a5041c"
+  },
+  "deploy": {
+    "restartPolicyType": "ON_FAILURE"
+  }
+}
+
