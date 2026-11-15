@@ -76,3 +76,31 @@ body:has(.cc-hero) #como-funciona .section-heading{margin-top:0}
 .cc-hero-clouds svg{overflow:visible}
 .cc-cloud-bank path{stroke-width:1.15;fill:#0a090c;stroke:#e8e3e8}
 @media(max-width:820px){body:has(.cc-hero) #como-funciona{padding-top:42px!important}}
+
+
+/* Refinamento 2026-11-15: quatro nuvens orgânicas e seções inferiores pretas */
+.cc-hero-clouds{height:clamp(238px,32svh,356px);overflow:visible}
+.cc-cloud-bank path{fill:#090909;stroke:#f0ecee;stroke-width:1.16;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}
+.cc-cloud-bank .cc-cloud-highlight{fill:none!important;stroke:#f7dbd0;stroke-width:.85;opacity:.24}
+.cc-cloud-bank-center-left{animation:ccCloudCenterLeft 11s ease-in-out infinite alternate;transform-origin:47% 83%}
+.cc-cloud-bank-center-right{animation:ccCloudCenterRight 14.5s ease-in-out infinite alternate;transform-origin:66% 88%}
+@keyframes ccCloudCenterLeft{from{transform:translate3d(-6px,2px,0)}to{transform:translate3d(8px,-6px,0)}}
+@keyframes ccCloudCenterRight{from{transform:translate3d(7px,-3px,0)}to{transform:translate3d(-8px,4px,0)}}
+body:has(.cc-hero){background:#080808!important}
+body:has(.cc-hero) section.section,
+body:has(.cc-hero) section.section-soft,
+body:has(.cc-hero) section#como-funciona,
+body:has(.cc-hero) section#planos,
+body:has(.cc-hero) section#duvidas,
+body:has(.cc-hero) section.container{background:#080808!important}
+body:has(.cc-hero) #como-funciona{border-top:0!important;background:#080808!important}
+body:has(.cc-hero) .marquee{display:none!important}
+body:has(.cc-hero) footer{background:#080808!important;border-top:1px solid #282428!important}
+body:has(.cc-hero) .darkband{background:#141213!important;border-color:#433331!important}
+@media(max-width:820px){
+  .cc-hero-clouds{height:clamp(205px,27svh,280px)}
+  .cc-cloud-bank .cc-cloud-highlight{opacity:.16}
+}
+@media(prefers-reduced-motion:reduce){
+  .cc-cloud-bank-center-left,.cc-cloud-bank-center-right{animation:none!important}
+}
