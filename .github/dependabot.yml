@@ -5,14 +5,4 @@ updates:
     schedule:
       interval: monthly
     open-pull-requests-limit: 5
-  - package-ecosystem: docker
-    directory: /infra/litellm
-    schedule:
-      interval: monthly
-    open-pull-requests-limit: 3
-  - package-ecosystem: docker
-    directory: /services/consecom-ai-portal
-    schedule:
-      interval: monthly
-    open-pull-requests-limit: 3
 

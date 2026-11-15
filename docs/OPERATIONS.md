@@ -15,6 +15,8 @@
 - Conferir backups e capacidade de restauração do Postgres.
 - Revisar alertas de dependências e segurança do GitHub.
 
+Imagens de produção são fixadas e atualizadas manualmente somente depois de validação em ambiente separado; o Dependabot atualiza apenas GitHub Actions.
+
 ## Antes de habilitar pagamentos
 
 1. Configurar as duas variáveis da Stripe.
