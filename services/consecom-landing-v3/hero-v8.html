@@ -14,12 +14,13 @@
       <strong>11,3x</strong><span>mais economia</span>
     </div>
     <div class="cc-hero-clouds" aria-hidden="true">
-      <svg viewBox="0 0 1600 400" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 1600 420" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Silhuetas completas: borda superior e inferior arredondadas, sem base reta. -->
         <g class="cc-cloud-bank cc-cloud-bank-left">
-          <path d="M-60 195 C-8 88 132 73 213 158 C286 126 376 158 399 234 C469 207 555 245 587 324 C628 315 670 327 710 370 L710 430 L-60 430 Z"/>
+          <path d="M-85 143 C-25 83 51 79 119 130 C174 62 273 76 312 148 C397 122 473 157 501 214 C566 181 651 214 680 274 C737 260 803 287 801 323 C798 357 757 379 714 358 C674 399 610 392 579 363 C521 408 461 388 429 360 C369 403 311 394 275 360 C211 401 152 385 116 346 C39 389 -47 351 -85 311 C-103 266 -100 177 -85 143 Z"/>
         </g>
         <g class="cc-cloud-bank cc-cloud-bank-right">
-          <path d="M876 360 C936 312 988 312 1040 325 C1067 243 1157 207 1224 252 C1273 145 1385 117 1460 181 C1536 116 1623 152 1660 244 L1660 430 L876 430 Z"/>
+          <path d="M812 318 C832 270 893 252 940 275 C978 211 1049 193 1107 225 C1168 136 1277 148 1323 210 C1391 139 1495 145 1552 202 C1609 170 1682 196 1691 250 C1704 283 1700 312 1665 340 C1612 383 1543 384 1502 354 C1432 403 1372 382 1333 351 C1280 398 1206 387 1184 358 C1128 399 1075 392 1038 363 C981 398 924 387 897 363 C855 380 823 356 812 338 C808 330 809 324 812 318 Z"/>
         </g>
       </svg>
     </div>
@@ -33,10 +34,10 @@
   function paint(){
     ticking=false;
     var rect=scene.getBoundingClientRect();
-    var distance=Math.max(1,rect.height-window.innerHeight);
+    var distance=Math.max(1,window.innerHeight*0.9);
     var progress=Math.min(1,Math.max(0,-rect.top/distance));
     scene.style.setProperty('--cc-scroll',progress.toFixed(4));
-    scene.style.setProperty('--cc-cloud-rise',(-22*progress).toFixed(1)+'px');
+    scene.style.setProperty('--cc-cloud-rise',(-24*progress).toFixed(1)+'px');
     scene.style.setProperty('--cc-beam-shift',(-12*progress).toFixed(1)+'px');
   }
   function schedule(){if(!ticking){ticking=true;requestAnimationFrame(paint)}}
