@@ -468,3 +468,248 @@ body:has(.cc-hero) footer a:hover {color:#f28b65!important}
   body:has(.cc-hero) .button::after {display:none!important}
   body:has(.cc-hero) .faq-items details[open] > p {animation:none!important}
 }
+
+
+/* Cloud Code — carousel embedded in clouds and desktop/CLI feature section. */
+.cc-cloud-models {
+  position:absolute;
+  top:72%;
+  left:0;
+  z-index:19;
+  width:100%;
+  overflow:hidden;
+  padding:10px 0;
+  white-space:nowrap;
+  color:#f4eeea;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 7%,#000 93%,transparent 100%);
+  mask-image:linear-gradient(90deg,transparent 0%,#000 7%,#000 93%,transparent 100%);
+}
+.cc-cloud-models-track {
+  display:flex;
+  width:max-content;
+  align-items:center;
+  gap:0;
+  animation:ccModelCarousel 38s linear infinite;
+  will-change:transform;
+}
+.cc-cloud-models-set {
+  display:flex;
+  flex:none;
+  align-items:center;
+  gap:clamp(20px,2.3vw,34px);
+  padding-right:clamp(20px,2.3vw,34px);
+}
+.cc-model-item {
+  flex:none;
+  font-family:"Anthropic Sans","Poppins",Arial,sans-serif;
+  font-size:clamp(18px,1.7vw,25px);
+  font-weight:500;
+  line-height:1.25;
+  letter-spacing:-.045em;
+  color:#f5ede9;
+  text-shadow:0 3px 15px rgba(0,0,0,.3);
+}
+.cc-model-dot {
+  color:#eb7858;
+  font-family:Arial,sans-serif;
+  font-size:clamp(17px,1.7vw,23px);
+  line-height:1;
+  font-weight:400;
+}
+@keyframes ccModelCarousel {
+  from {transform:translate3d(0,0,0)}
+  to {transform:translate3d(-50%,0,0)}
+}
+.cc-use {
+  position:relative;
+  z-index:1;
+  isolation:isolate;
+  width:100%;
+  margin:0;
+  background:#080808;
+  color:#f6f1ee;
+  padding:clamp(210px,27svh,288px) 0 clamp(76px,9vw,124px);
+  overflow:clip;
+}
+.cc-use::before {
+  content:"";
+  position:absolute;
+  z-index:-1;
+  left:50%;
+  top:20%;
+  width:min(900px,95vw);
+  height:520px;
+  transform:translateX(-50%);
+  pointer-events:none;
+  background:radial-gradient(ellipse,rgba(215,80,51,.075),transparent 70%);
+}
+.cc-use-container {
+  width:min(1140px,calc(100% - 48px));
+  margin-inline:auto;
+  display:flex;
+  align-items:center;
+  flex-direction:column;
+  gap:0;
+  text-align:center;
+}
+.cc-use-intro {max-width:890px}
+.cc-use-eyebrow {
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  color:#ef8868;
+  font:700 11px/1.2 "Poppins",Arial,sans-serif;
+  letter-spacing:.18em;
+}
+.cc-use-eyebrow-dot {
+  display:inline-block;
+  width:7px;
+  height:7px;
+  flex:none;
+  border-radius:50%;
+  background:#f58560;
+  box-shadow:0 0 0 5px rgba(245,133,96,.11);
+}
+.cc-use-intro h2 {
+  margin:23px auto 17px;
+  color:#fbf8f6;
+  font-family:"Anthropic Sans","Poppins",Arial,sans-serif;
+  font-size:clamp(42px,5.4vw,77px);
+  font-weight:650;
+  letter-spacing:-.065em;
+  line-height:1.06;
+}
+.cc-use-intro h2 span {
+  display:block;
+  color:#dfd4d0;
+  font-weight:300;
+  letter-spacing:-.05em;
+}
+.cc-use-intro p {
+  max-width:690px;
+  margin:0 auto;
+  color:#aaa0a0;
+  font-size:clamp(14px,1.4vw,17px);
+  line-height:1.75;
+}
+.cc-use-grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+  width:100%;
+  margin-top:52px;
+  text-align:left;
+}
+.cc-use-card {
+  position:relative;
+  isolation:isolate;
+  min-width:0;
+  padding:clamp(26px,3vw,39px);
+  border-radius:24px;
+  border:1px solid rgba(255,255,255,.095);
+  background:linear-gradient(140deg,rgba(255,255,255,.038),rgba(255,255,255,.012));
+  overflow:hidden;
+  transition:transform .48s cubic-bezier(.22,1,.36,1),border-color .4s ease,box-shadow .45s ease;
+}
+.cc-use-card::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  opacity:0;
+  pointer-events:none;
+  background:radial-gradient(ellipse at 14% 0%,rgba(233,116,81,.13),transparent 64%);
+  transition:opacity .4s ease;
+}
+.cc-use-icon {
+  width:60px;
+  height:60px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(243,134,99,.30);
+  border-radius:17px;
+  color:#ed8a66;
+  background:rgba(236,117,81,.085);
+  margin-bottom:30px;
+}
+.cc-use-card-index {
+  display:block;
+  color:#b59a91;
+  font:500 10px/1.4 ui-monospace,Consolas,monospace;
+  letter-spacing:.15em;
+}
+.cc-use-card h3 {
+  color:#f4eeed;
+  margin:12px 0;
+  font:650 clamp(25px,2.5vw,34px)/1.2 "Anthropic Sans","Poppins",Arial,sans-serif;
+  letter-spacing:-.05em;
+}
+.cc-use-card p {
+  max-width:440px;
+  color:#a9a1a1;
+  line-height:1.7;
+  font-size:14px;
+  margin:0;
+}
+.cc-use-card-bottom {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  justify-content:space-between;
+  margin-top:36px;
+  padding-top:21px;
+  color:#e4d8d2;
+  border-top:1px solid rgba(255,255,255,.08);
+  font:500 12px/1.35 "Poppins",Arial,sans-serif;
+}
+.cc-use-card-bottom span {color:#ef916d;font-size:19px}
+.cc-use-note {
+  margin:24px auto 0;
+  font-size:11px;
+  line-height:1.65;
+  color:#8d8485;
+  max-width:770px;
+}
+.cc-use-action {
+  margin-top:29px;
+  border:1px solid #e07a58!important;
+  background:#da7654!important;
+  color:#fff!important;
+  font-family:"Poppins",Arial,sans-serif!important;
+}
+body:has(.cc-hero) #como-funciona {
+  padding-top:clamp(70px,8vw,116px)!important;
+}
+@media (hover:hover) and (pointer:fine) {
+  .cc-use-card:hover {
+    transform:translateY(-7px);
+    border-color:rgba(247,141,104,.42);
+    box-shadow:0 25px 50px -35px rgba(236,105,69,.4);
+  }
+  .cc-use-card:hover::before {opacity:1}
+}
+@media(max-width:820px) {
+  .cc-cloud-models {top:73%;padding:8px 0}
+  .cc-cloud-models-track {animation-duration:31s}
+  .cc-model-item {font-size:17px;letter-spacing:-.03em}
+  .cc-use {
+    padding-top:clamp(145px,23svh,215px);
+    padding-bottom:80px;
+  }
+  .cc-use-container {width:calc(100% - 38px)}
+  .cc-use-intro h2 {font-size:clamp(40px,8vw,61px)}
+  .cc-use-grid {margin-top:37px}
+}
+@media(max-width:620px) {
+  .cc-use-grid{grid-template-columns:1fr;gap:14px}
+  .cc-use-card {padding:25px;border-radius:20px}
+  .cc-use-card-bottom{margin-top:24px}
+  .cc-use-action{width:100%;max-width:420px}
+  .cc-use-note{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce) {
+  .cc-cloud-models{pointer-events:auto;overflow-x:auto;-webkit-mask-image:none;mask-image:none}
+  .cc-cloud-models-track{animation:none!important;will-change:auto}
+  .cc-cloud-models-set[aria-hidden="true"]{display:none!important}
+  .cc-use-card,.cc-use-card::before{animation:none!important;transition:none!important}
+}
