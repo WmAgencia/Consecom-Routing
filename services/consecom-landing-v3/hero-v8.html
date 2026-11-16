@@ -44,30 +44,144 @@
       <h2 id="cc-use-title">Cloud Code no seu ritmo.<span>Desktop ou CLI.</span></h2>
       <p>Trabalhe com interface visual no aplicativo desktop ou continue no terminal. Uma chave, perfis compatíveis e liberdade para escolher como desenvolver.</p>
     </div>
-    <div class="cc-use-grid">
-      <article class="cc-use-card">
-        <div class="cc-use-icon" aria-hidden="true">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="22" height="16" rx="2.5"/><path d="M10 25h8M14 20v5M3 9h22"/></svg>
+    <div class="cc-showcase-grid" aria-label="Demonstração do desktop e do terminal, funcionando em paralelo">
+      <article class="cc-showcase-window cc-showcase-window--desktop" aria-label="Simulação do aplicativo Claude Code Desktop">
+        <header class="cc-showcase-bar">
+          <div class="cc-showcase-lights" aria-hidden="true"><i></i><i></i><i></i></div>
+          <span class="cc-showcase-bar-title">Claude Code <span>· Desktop</span></span>
+          <span class="cc-showcase-bar-status"><span class="cc-showcase-live-dot"></span> Visual</span>
+        </header>
+        <div class="cc-showcase-app">
+          <aside class="cc-showcase-sidebar" aria-hidden="true">
+            <div class="cc-showcase-tabs"><span>Chat</span><span>Cowork</span><b>Code</b></div>
+            <div class="cc-showcase-nav-item cc-showcase-nav-active"><span>✳</span> Nova sessão</div>
+            <div class="cc-showcase-nav-item"><span>▦</span> Projetos</div>
+            <div class="cc-showcase-nav-label">RECENTES</div>
+            <div class="cc-showcase-nav-item cc-showcase-nav-current"><span>◉</span> Site Consecom</div>
+            <div class="cc-showcase-nav-item"><span>◷</span> Landing page</div>
+            <div class="cc-showcase-nav-foot"><span class="cc-showcase-local-dot"></span> Local</div>
+          </aside>
+          <div class="cc-showcase-workspace">
+            <div class="cc-showcase-workspace-head">
+              <span class="cc-showcase-folder">▧ &nbsp;consecom-site</span>
+              <span class="cc-showcase-context">Code <span aria-hidden="true">⌄</span></span>
+            </div>
+            <div class="cc-showcase-chat">
+              <div class="cc-showcase-chat-label">SESSÃO LOCAL <span>·</span> EXEMPLO</div>
+              <div class="cc-showcase-user-bubble"><span class="cc-showcase-message-label">Você</span><p data-demo-type="desktop-prompt">Crie uma seção com duas janelas animadas.</p></div>
+              <div class="cc-showcase-agent">
+                <div class="cc-showcase-agent-heading"><span class="cc-showcase-agent-symbol">✳</span> Cloud Code <span class="cc-showcase-agent-tag">trabalhando</span></div>
+                <p data-demo-type="desktop-reply">Vou criar a interface e validar os dois formatos.</p>
+                <div class="cc-showcase-activity">
+                  <div data-demo-task="desktop-step1"><span class="cc-showcase-task-check">✓</span> Lendo estrutura do projeto</div>
+                  <div data-demo-task="desktop-step2"><span class="cc-showcase-task-check">✓</span> Construindo componentes</div>
+                  <div data-demo-task="desktop-step3"><span class="cc-showcase-task-check">✓</span> Prévia atualizada</div>
+                </div>
+              </div>
+            </div>
+            <div class="cc-showcase-composer"><span>Peça outra alteração...</span><span class="cc-showcase-send">↑</span></div>
+          </div>
         </div>
-        <span class="cc-use-card-index">01 / VISUAL</span>
-        <h3>Aplicativo desktop</h3>
-        <p>Para organizar projetos, acompanhar conversas e trabalhar com uma experiência visual no seu computador.</p>
-        <span class="cc-use-card-bottom">Uma experiência mais visual <span aria-hidden="true">↗</span></span>
+        <footer class="cc-showcase-caption"><span><b>01</b> · Aplicativo desktop</span><span>Interface visual</span></footer>
       </article>
-      <article class="cc-use-card">
-        <div class="cc-use-icon" aria-hidden="true">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="22" height="20" rx="2.5"/><path d="m8 11 4 3.5-4 3.5M15 18h6"/></svg>
+      <article class="cc-showcase-window cc-showcase-window--terminal" aria-label="Simulação do Claude Code CLI no terminal">
+        <header class="cc-showcase-bar">
+          <div class="cc-showcase-lights" aria-hidden="true"><i></i><i></i><i></i></div>
+          <span class="cc-showcase-bar-title">Terminal <span>· CLI</span></span>
+          <span class="cc-showcase-bar-status"><span class="cc-showcase-live-dot"></span> CLI</span>
+        </header>
+        <div class="cc-showcase-terminal-body">
+          <div class="cc-showcase-terminal-path"><span>●</span> ~/projetos/consecom-site <span class="cc-showcase-terminal-git">main</span></div>
+          <div class="cc-showcase-terminal-command"><span class="cc-showcase-cli-dollar">$</span> <span data-demo-type="cli-start">claude</span></div>
+          <div class="cc-showcase-terminal-heading"><span class="cc-showcase-cli-mark">✳</span><span>Cloud Code</span><span class="cc-showcase-terminal-version">ambiente local</span></div>
+          <div class="cc-showcase-terminal-info">Sessão iniciada • pronto para desenvolver</div>
+          <div class="cc-showcase-cli-query"><span class="cc-showcase-cli-prompt">›</span> <span data-demo-type="cli-command">Crie uma seção Desktop + CLI para o site.</span></div>
+          <div class="cc-showcase-cli-output">
+            <div data-demo-task="cli-step1"><span class="cc-showcase-cli-done">✓</span> Lendo os componentes...</div>
+            <div data-demo-task="cli-step2"><span class="cc-showcase-cli-done">✓</span> Atualizando a interface...</div>
+            <div data-demo-task="cli-step3"><span class="cc-showcase-cli-done">✓</span> Compilação concluída</div>
+          </div>
+          <div class="cc-showcase-cli-bottom"><span class="cc-showcase-cli-cursor">▍</span> Aguardando seu próximo comando</div>
         </div>
-        <span class="cc-use-card-index">02 / TERMINAL</span>
-        <h3>CLI</h3>
-        <p>Para trabalhar diretamente no terminal, integrar seu fluxo de desenvolvimento e executar comandos com agilidade.</p>
-        <span class="cc-use-card-bottom">Seu código, no seu terminal <span aria-hidden="true">↗</span></span>
+        <footer class="cc-showcase-caption"><span><b>02</b> · Terminal / CLI</span><span>Fluxo de comandos</span></footer>
       </article>
     </div>
-    <p class="cc-use-note">Perfis compatíveis da Consecom AI. A compatibilidade com aplicativos de terceiros depende da versão e da configuração do cliente.</p>
+    <p class="cc-use-note">Demonstração ilustrativa. O visual e os comandos podem variar conforme a versão do aplicativo e a configuração da API.</p>
     <a href="#planos" class="button cc-use-action">Explorar os pacotes <span aria-hidden="true">↗</span></a>
   </div>
 </section>
+<script>
+(function(){
+  const section=document.querySelector('.cc-use');
+  if(!section)return;
+  const text={
+    'desktop-prompt':'Crie uma seção com duas janelas animadas.',
+    'desktop-reply':'Vou criar a interface e validar os dois formatos.',
+    'cli-start':'claude',
+    'cli-command':'Crie uma seção Desktop + CLI para o site.'
+  };
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fields=Object.fromEntries(Object.keys(text).map(key=>[key,section.querySelector('[data-demo-type="'+key+'"]')]));
+  const steps=Array.from(section.querySelectorAll('[data-demo-task]'));
+  if(Object.values(fields).some(el=>!el))return;
+  for(const [key,value] of Object.entries(text))fields[key].textContent=value;
+  if(reduced)return;
+  let active=false,timers=[];
+  function schedule(fn,delay){const t=window.setTimeout(fn,delay);timers.push(t)}
+  function stop(){
+    timers.forEach(window.clearTimeout);
+    timers=[];
+    active=false;
+    section.classList.remove('cc-showcase-playing');
+    steps.forEach(el=>el.classList.remove('cc-showcase-task-done'));
+    for(const [key,value] of Object.entries(text))fields[key].textContent=value;
+  }
+  function type(key,delay,speed){
+    const el=fields[key],value=text[key];
+    schedule(function(){
+      if(!active)return;
+      el.textContent='';
+      let index=0;
+      function tick(){
+        if(!active)return;
+        index=Math.min(value.length,index+1);
+        el.textContent=value.slice(0,index);
+        if(index<value.length)schedule(tick,speed);
+      }
+      tick();
+    },delay);
+  }
+  function play(){
+    if(active||document.hidden)return;
+    active=true;
+    section.classList.add('cc-showcase-playing');
+    steps.forEach(el=>el.classList.remove('cc-showcase-task-done'));
+    for(const el of Object.values(fields))el.textContent='';
+    type('cli-start',150,110);
+    type('desktop-prompt',200,44);
+    type('cli-command',1360,39);
+    type('desktop-reply',2700,39);
+    ['desktop-step1','cli-step1','desktop-step2','cli-step2','desktop-step3','cli-step3'].forEach(function(key,index){
+      schedule(function(){
+        if(!active)return;
+        const step=section.querySelector('[data-demo-task="'+key+'"]');
+        if(step)step.classList.add('cc-showcase-task-done');
+      },4200+index*620);
+    });
+    schedule(function(){stop();play()},11000);
+  }
+  const observer=new IntersectionObserver(function(entries){
+    const visible=entries.some(e=>e.isIntersecting);
+    if(visible)play();
+    else if(active)stop();
+  },{threshold:0.18});
+  observer.observe(section.querySelector('.cc-showcase-grid'));
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden)stop();
+    else if(section.getBoundingClientRect().top<innerHeight&&section.getBoundingClientRect().bottom>0)play();
+  });
+})();
+</script>
 <script>
 (function(){
   const scene=document.querySelector('.cc-hero');
@@ -95,7 +209,7 @@
     if(!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
     const selectors=[
       '#usar .cc-use-intro',
-      '#usar .cc-use-card',
+      '#usar .cc-showcase-window',
       '#usar .cc-use-note',
       '#usar .cc-use-action',
       '#como-funciona .section-heading',
@@ -122,7 +236,7 @@
     },{threshold:.08,rootMargin:'0px 0px -7% 0px'});
     items.forEach(function(item){
       item.setAttribute('data-cc-reveal','');
-      if(item.matches('.step, .plan, .faq-items details, .cc-use-card')){
+      if(item.matches('.step, .plan, .faq-items details, .cc-showcase-window')){
         const siblings=Array.from(item.parentElement.children);
         const delay=Math.min(240,(siblings.indexOf(item)%3)*95);
         item.style.setProperty('--cc-reveal-delay',delay+'ms');
