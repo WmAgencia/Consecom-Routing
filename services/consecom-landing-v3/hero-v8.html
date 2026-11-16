@@ -29,6 +29,43 @@
     <path class="cc-cloud-edge cc-cloud-edge--top" d="M -30.0 171.0 C -16.7 170.2 -3.3 164.8 10.0 159.0 C 27.0 151.6 44.0 120.5 61.0 116.0 C 75.7 112.1 90.3 109.0 105.0 109.0 C 123.0 109.0 141.0 141.0 159.0 160.0 C 176.3 178.3 193.7 215.6 211.0 222.0 C 222.7 226.3 234.3 230.0 246.0 230.0 C 261.7 230.0 277.3 201.7 293.0 193.0 C 307.7 184.8 322.3 174.0 337.0 174.0 C 356.3 174.0 375.7 181.0 395.0 181.0 C 403.3 181.0 411.7 178.5 420.0 176.0"/>
     <path class="cc-cloud-edge cc-cloud-edge--bottom" d="M -30.0 344.0 C -8.3 368.5 13.3 384.0 35.0 384.0 C 56.7 384.0 78.3 357.0 100.0 357.0 C 126.7 357.0 153.3 411.0 180.0 411.0 C 205.0 411.0 230.0 369.0 255.0 369.0 C 278.3 369.0 301.7 403.0 325.0 403.0 C 356.7 403.0 388.3 387.6 420.0 352.0"/>
   </svg>
+    <div class="cc-cloud-models" role="group" aria-label="Perfis disponíveis na plataforma">
+      <div class="cc-cloud-models-track">
+        <div class="cc-cloud-models-set"><span class="cc-model-item">Sonnet 5.5</span><span class="cc-model-dot" aria-hidden="true">•</span><span class="cc-model-item">Fable 5.1</span><span class="cc-model-dot" aria-hidden="true">•</span><span class="cc-model-item">Fable 5.2</span><span class="cc-model-dot" aria-hidden="true">•</span><span class="cc-model-item">Opus 5.5</span><span class="cc-model-dot" aria-hidden="true">•</span><span class="cc-model-item">Fable 5</span><span class="cc-model-dot" aria-hidden="true">•</span><span class="cc-model-item">Opus 5</span><span class="cc-model-dot" aria-hidden="true">•</span></div>
+        <div class="cc-cloud-models-set" aria-hidden="true"><span class="cc-model-item">Sonnet 5.5</span><span class="cc-model-dot" aria-hidden="true">•</span><span class="cc-model-item">Fable 5.1</span><span class="cc-model-dot" aria-hidden="true">•</span><span class="cc-model-item">Fable 5.2</span><span class="cc-model-dot" aria-hidden="true">•</span><span class="cc-model-item">Opus 5.5</span><span class="cc-model-dot" aria-hidden="true">•</span><span class="cc-model-item">Fable 5</span><span class="cc-model-dot" aria-hidden="true">•</span><span class="cc-model-item">Opus 5</span><span class="cc-model-dot">•</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="cc-use" id="usar" aria-labelledby="cc-use-title">
+  <div class="cc-use-container">
+    <div class="cc-use-intro">
+      <span class="cc-use-eyebrow"><span aria-hidden="true" class="cc-use-eyebrow-dot"></span> SUA FERRAMENTA, SEU FLUXO</span>
+      <h2 id="cc-use-title">Cloud Code no seu ritmo.<span>Desktop ou CLI.</span></h2>
+      <p>Trabalhe com interface visual no aplicativo desktop ou continue no terminal. Uma chave, perfis compatíveis e liberdade para escolher como desenvolver.</p>
+    </div>
+    <div class="cc-use-grid">
+      <article class="cc-use-card">
+        <div class="cc-use-icon" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="22" height="16" rx="2.5"/><path d="M10 25h8M14 20v5M3 9h22"/></svg>
+        </div>
+        <span class="cc-use-card-index">01 / VISUAL</span>
+        <h3>Aplicativo desktop</h3>
+        <p>Para organizar projetos, acompanhar conversas e trabalhar com uma experiência visual no seu computador.</p>
+        <span class="cc-use-card-bottom">Uma experiência mais visual <span aria-hidden="true">↗</span></span>
+      </article>
+      <article class="cc-use-card">
+        <div class="cc-use-icon" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="22" height="20" rx="2.5"/><path d="m8 11 4 3.5-4 3.5M15 18h6"/></svg>
+        </div>
+        <span class="cc-use-card-index">02 / TERMINAL</span>
+        <h3>CLI</h3>
+        <p>Para trabalhar diretamente no terminal, integrar seu fluxo de desenvolvimento e executar comandos com agilidade.</p>
+        <span class="cc-use-card-bottom">Seu código, no seu terminal <span aria-hidden="true">↗</span></span>
+      </article>
+    </div>
+    <p class="cc-use-note">Perfis compatíveis da Consecom AI. A compatibilidade com aplicativos de terceiros depende da versão e da configuração do cliente.</p>
+    <a href="#planos" class="button cc-use-action">Explorar os pacotes <span aria-hidden="true">↗</span></a>
   </div>
 </section>
 <script>
@@ -57,6 +94,10 @@
     if(document.documentElement.classList.contains('cc-motion-enabled'))return;
     if(!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
     const selectors=[
+      '#usar .cc-use-intro',
+      '#usar .cc-use-card',
+      '#usar .cc-use-note',
+      '#usar .cc-use-action',
       '#como-funciona .section-heading',
       '#como-funciona .step',
       '#planos .section-heading',
@@ -81,7 +122,7 @@
     },{threshold:.08,rootMargin:'0px 0px -7% 0px'});
     items.forEach(function(item){
       item.setAttribute('data-cc-reveal','');
-      if(item.matches('.step, .plan, .faq-items details')){
+      if(item.matches('.step, .plan, .faq-items details, .cc-use-card')){
         const siblings=Array.from(item.parentElement.children);
         const delay=Math.min(240,(siblings.indexOf(item)%3)*95);
         item.style.setProperty('--cc-reveal-delay',delay+'ms');
