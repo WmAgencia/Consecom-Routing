@@ -49,3 +49,51 @@
   paint();
 })();
 </script>
+
+<script>
+(function(){
+  function initLandingMotion(){
+    if(!document.querySelector('.cc-hero'))return;
+    if(document.documentElement.classList.contains('cc-motion-enabled'))return;
+    if(!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    const selectors=[
+      '#como-funciona .section-heading',
+      '#como-funciona .step',
+      '#planos .section-heading',
+      '#planos .trial-horizontal',
+      '#planos .packs-label',
+      '#planos .pricegrid .plan',
+      '#planos .note',
+      '.darkband',
+      '#duvidas .faq > div:first-child',
+      '#duvidas .faq-items details',
+      '#contato'
+    ];
+    const items=Array.from(document.querySelectorAll(selectors.join(',')));
+    if(!items.length)return;
+    const observer=new IntersectionObserver(function(entries){
+      for(const entry of entries){
+        if(entry.isIntersecting){
+          entry.target.classList.add('cc-visible');
+          observer.unobserve(entry.target);
+        }
+      }
+    },{threshold:.08,rootMargin:'0px 0px -7% 0px'});
+    items.forEach(function(item){
+      item.setAttribute('data-cc-reveal','');
+      if(item.matches('.step, .plan, .faq-items details')){
+        const siblings=Array.from(item.parentElement.children);
+        const delay=Math.min(240,(siblings.indexOf(item)%3)*95);
+        item.style.setProperty('--cc-reveal-delay',delay+'ms');
+      }
+    });
+    document.documentElement.classList.add('cc-motion-enabled');
+    items.forEach(function(item){observer.observe(item)});
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',initLandingMotion,{once:true});
+  }else{
+    initLandingMotion();
+  }
+})();
+</script>
