@@ -278,3 +278,193 @@ body:has(.cc-hero) .darkband {background:#141213!important;border-color:#433331!
   .cc-hero-clouds svg.cc-cloud-art--desktop{display:none}
   .cc-hero-clouds svg.cc-cloud-art--mobile{display:block}
 }
+
+
+/* Landing motion system — subtle premium interactions, no layout shifts. */
+:root {
+  --cc-motion-curve: cubic-bezier(.22,1,.36,1);
+  --cc-motion-speed: .46s;
+}
+body:has(.cc-hero) .button,
+body:has(.cc-hero) .trial-cta .button,
+body:has(.cc-hero) .plan .button {
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  transition:
+    transform .34s var(--cc-motion-curve),
+    box-shadow .34s ease,
+    background-color .34s ease,
+    border-color .34s ease,
+    color .34s ease;
+  will-change:auto;
+}
+body:has(.cc-hero) .button::after {
+  content:"";
+  position:absolute;
+  inset:-1px;
+  z-index:1;
+  background:linear-gradient(110deg,transparent 26%,rgba(255,255,255,.04) 39%,rgba(255,255,255,.24) 50%,rgba(255,255,255,.04) 61%,transparent 74%);
+  pointer-events:none;
+  transform:translate3d(-135%,0,0) skewX(-16deg);
+  transition:transform .8s var(--cc-motion-curve);
+}
+@media(hover:hover) and (pointer:fine) {
+  body:has(.cc-hero) .button:hover {
+    transform:translateY(-3px);
+    box-shadow:0 16px 32px -15px rgba(255,103,66,.42),0 0 0 1px rgba(255,147,111,.18);
+    border-color:#e98a69;
+  }
+  body:has(.cc-hero) .button:hover::after {transform:translate3d(135%,0,0) skewX(-16deg)}
+  body:has(.cc-hero) .button-primary:hover,
+  body:has(.cc-hero) .trial-cta .button:hover {
+    background:#f47b58!important;
+    border-color:#ff9b78!important;
+    color:#fff!important;
+  }
+}
+body:has(.cc-hero) .button:active {
+  transform:translateY(0) scale(.985);
+  transition-duration:.12s;
+}
+body:has(.cc-hero) a:focus-visible,
+body:has(.cc-hero) button:focus-visible,
+body:has(.cc-hero) summary:focus-visible {
+  outline:2px solid #ff956c;
+  outline-offset:4px;
+}
+body:has(.cc-hero) .plan,
+body:has(.cc-hero) .step,
+body:has(.cc-hero) .trial-horizontal {
+  transition:
+    transform var(--cc-motion-speed) var(--cc-motion-curve),
+    border-color .4s ease,
+    background-color .4s ease,
+    box-shadow .5s ease;
+}
+body:has(.cc-hero) .plan {isolation:isolate}
+body:has(.cc-hero) .plan::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  border-radius:inherit;
+  opacity:0;
+  background:radial-gradient(circle at 50% 0%,rgba(240,119,76,.10),transparent 66%);
+  transition:opacity .46s ease;
+}
+body:has(.cc-hero) .plan .plan-line {position:relative;overflow:hidden}
+body:has(.cc-hero) .plan .plan-line::after {
+  content:"";
+  position:absolute;
+  top:-1px;
+  left:0;
+  width:100%;
+  border-top:2px solid #e78661;
+  transform:scaleX(0);
+  transform-origin:left;
+  transition:transform .65s var(--cc-motion-curve);
+}
+@media(hover:hover) and (pointer:fine) {
+  body:has(.cc-hero) .plan:hover {
+    transform:translateY(-8px);
+    border-color:#d98b70;
+    box-shadow:0 24px 48px -22px rgba(0,0,0,.48),0 0 0 1px rgba(245,127,88,.12);
+  }
+  body:has(.cc-hero) .plan:hover::after {opacity:1}
+  body:has(.cc-hero) .plan:hover .plan-line::after {transform:scaleX(1)}
+  body:has(.cc-hero) .step:hover {
+    transform:translateY(-6px);
+    border-color:#d8896d;
+    box-shadow:0 20px 38px -24px rgba(0,0,0,.50);
+  }
+  body:has(.cc-hero) .trial-horizontal:hover {
+    transform:translateY(-5px);
+    border-color:#f29370;
+    box-shadow:0 25px 56px -25px rgba(232,99,65,.29);
+  }
+  body:has(.cc-hero) .step:hover .step-icon {
+    transform:translateY(-3px) rotate(-5deg);
+    box-shadow:0 8px 20px rgba(241,109,70,.18);
+  }
+}
+body:has(.cc-hero) .step-icon {
+  transition:transform .45s var(--cc-motion-curve),box-shadow .4s ease;
+}
+body:has(.cc-hero) .faq-items details {
+  transition:border-color .32s ease,box-shadow .32s ease,background-color .32s ease;
+}
+body:has(.cc-hero) .faq-items details[open] {
+  border-color:#d89175;
+  box-shadow:0 14px 28px -23px rgba(255,134,93,.38);
+}
+body:has(.cc-hero) .faq-items summary {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  list-style:none;
+}
+body:has(.cc-hero) .faq-items summary::-webkit-details-marker {display:none}
+body:has(.cc-hero) .faq-items summary::after {
+  content:"+";
+  display:grid;
+  place-items:center;
+  flex:none;
+  width:27px;
+  height:27px;
+  border:1px solid currentColor;
+  border-radius:50%;
+  font-size:20px;
+  font-weight:400;
+  line-height:1;
+  opacity:.7;
+  transition:transform .35s var(--cc-motion-curve),color .3s ease,opacity .3s ease;
+}
+body:has(.cc-hero) .faq-items details[open] summary::after {
+  transform:rotate(45deg);
+  opacity:1;
+  color:#d98262;
+}
+body:has(.cc-hero) .faq-items details[open] > p {
+  animation:ccFaqReveal .4s var(--cc-motion-curve) both;
+}
+@keyframes ccFaqReveal {
+  from {opacity:0;translate:0 -7px}
+  to {opacity:1;translate:0 0}
+}
+body:has(.cc-hero) .darkband .button {white-space:nowrap}
+body:has(.cc-hero) footer a {
+  transition:color .28s ease,opacity .28s ease;
+}
+body:has(.cc-hero) footer a:hover {color:#f28b65!important}
+@media(prefers-reduced-motion:no-preference) {
+  html.cc-motion-enabled [data-cc-reveal] {
+    opacity:0;
+    translate:0 22px;
+    transition:
+      opacity .78s var(--cc-motion-curve) var(--cc-reveal-delay,0ms),
+      translate .78s var(--cc-motion-curve) var(--cc-reveal-delay,0ms);
+  }
+  html.cc-motion-enabled [data-cc-reveal].cc-visible {
+    opacity:1;
+    translate:0 0;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  html [data-cc-reveal] {opacity:1!important;translate:none!important}
+  body:has(.cc-hero) .button,
+  body:has(.cc-hero) .step,
+  body:has(.cc-hero) .plan,
+  body:has(.cc-hero) .trial-horizontal,
+  body:has(.cc-hero) .step-icon,
+  body:has(.cc-hero) .faq-items details,
+  body:has(.cc-hero) .faq-items summary::after {
+    animation:none!important;
+    transition:none!important;
+    transform:none!important;
+  }
+  body:has(.cc-hero) .button::after {display:none!important}
+  body:has(.cc-hero) .faq-items details[open] > p {animation:none!important}
+}
