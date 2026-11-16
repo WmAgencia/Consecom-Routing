@@ -6,9 +6,18 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "X-Frame-Options", "value": "DENY" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        }
       ]
     }
   ],
@@ -20,7 +29,12 @@
     },
     {
       "source": "/cadastro",
-      "destination": "https://consecom-ai-portal-production.up.railway.app/cadastro",
+      "destination": "https://consecom-checkout-production.up.railway.app/comprar",
+      "permanent": false
+    },
+    {
+      "source": "/comprar",
+      "destination": "https://consecom-checkout-production.up.railway.app/comprar",
       "permanent": false
     },
     {
