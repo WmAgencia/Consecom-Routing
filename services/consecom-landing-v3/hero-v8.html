@@ -134,19 +134,24 @@
     active=false;
     section.classList.remove('cc-showcase-playing');
     steps.forEach(el=>el.classList.remove('cc-showcase-task-done'));
-    for(const [key,value] of Object.entries(text))fields[key].textContent=value;
+    for(const [key,value] of Object.entries(text)){
+      fields[key].textContent=value;
+      fields[key].classList.remove('cc-showcase-typing');
+    }
   }
   function type(key,delay,speed){
     const el=fields[key],value=text[key];
     schedule(function(){
       if(!active)return;
       el.textContent='';
+      el.classList.add('cc-showcase-typing');
       let index=0;
       function tick(){
         if(!active)return;
         index=Math.min(value.length,index+1);
         el.textContent=value.slice(0,index);
         if(index<value.length)schedule(tick,speed);
+        else el.classList.remove('cc-showcase-typing');
       }
       tick();
     },delay);
