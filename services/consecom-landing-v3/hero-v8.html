@@ -7,11 +7,13 @@
     <div class="cc-hero-heading">
       <h1>Cloud Code<span>sem fronteiras</span></h1>
     </div>
-    <div class="cc-hero-number cc-hero-number-left">
-      <strong>6</strong><span>modelos de ponta</span>
-    </div>
-    <div class="cc-hero-number cc-hero-number-right">
-      <strong>11,3x</strong><span>mais economia</span>
+    <div class="cc-hero-stats" aria-label="Destaques dos pacotes">
+      <div class="cc-hero-number cc-hero-number-left">
+        <strong>6</strong><span>modelos de ponta</span>
+      </div>
+      <div class="cc-hero-number cc-hero-number-right">
+        <strong>11,3x</strong><span>mais economia</span>
+      </div>
     </div>
   </div>
   <div class="cc-hero-clouds" aria-hidden="true">
@@ -31,19 +33,17 @@
 </section>
 <script>
 (function(){
-  var scene=document.querySelector('.cc-hero');
+  const scene=document.querySelector('.cc-hero');
   if(!scene||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-  var ticking=false;
+  let scheduled=false;
   function paint(){
-    ticking=false;
-    var rect=scene.getBoundingClientRect();
-    var distance=Math.max(1,window.innerHeight*0.9);
-    var progress=Math.min(1,Math.max(0,-rect.top/distance));
-    scene.style.setProperty('--cc-scroll',progress.toFixed(4));
-    scene.style.setProperty('--cc-cloud-rise',(-24*progress).toFixed(1)+'px');
-    scene.style.setProperty('--cc-beam-shift',(-12*progress).toFixed(1)+'px');
+    scheduled=false;
+    const progress=Math.min(1,Math.max(0,-scene.getBoundingClientRect().top/Math.max(1,window.innerHeight)));
+    scene.style.setProperty('--cc-cloud-rise',(-58*progress).toFixed(1)+'px');
+    scene.style.setProperty('--cc-cloud-drift',(24*progress).toFixed(1)+'px');
+    scene.style.setProperty('--cc-beam-shift',(-18*progress).toFixed(1)+'px');
   }
-  function schedule(){if(!ticking){ticking=true;requestAnimationFrame(paint)}}
+  function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(paint)}}
   window.addEventListener('scroll',schedule,{passive:true});
   window.addEventListener('resize',schedule,{passive:true});
   paint();
