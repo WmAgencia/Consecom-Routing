@@ -970,7 +970,7 @@ body:has(.cc-hero) #como-funciona {
   transition:opacity .4s ease,transform .4s ease;
 }
 .cc-showcase-playing [data-demo-task].cc-showcase-task-done{opacity:1;transform:translateY(0)}
-.cc-showcase-playing [data-demo-type]::after{
+.cc-showcase-playing [data-demo-type].cc-showcase-typing::after{
   content:"";
   display:inline-block;
   vertical-align:-2px;
@@ -1025,5 +1025,5 @@ body:has(.cc-hero) #como-funciona {
 @media(prefers-reduced-motion:reduce) {
   .cc-showcase-window{transform:none!important;transition:none!important}
   .cc-showcase-playing [data-demo-task]{opacity:1!important;transform:none!important;transition:none!important}
-  .cc-showcase-playing [data-demo-type]::after{display:none!important;animation:none!important}
+  .cc-showcase-playing [data-demo-type].cc-showcase-typing::after{display:none!important;animation:none!important}
 }
