@@ -1236,7 +1236,7 @@ body:has(.cc-hero) #como-funciona {
 .cc-showcase-cli-mark+.cc-showcase-terminal-heading span{color:#faebe4}
 
 /* Three-stage section: strong typography, refined outlines, no purple tiles. */
-#como-funciona{
+body:has(.cc-hero) #como-funciona{
   position:relative;
   isolation:isolate;
   padding-top:clamp(92px,9vw,145px)!important;
@@ -1449,7 +1449,7 @@ body:has(.cc-hero) #como-funciona {
   #como-funciona .cc-how-step .step-icon{margin-bottom:22px}
 }
 @media(max-width:820px){
-  #como-funciona{padding-top:75px!important;padding-bottom:85px!important}
+  body:has(.cc-hero) #como-funciona{padding-top:75px!important;padding-bottom:85px!important}
   #como-funciona .cc-how-progress{margin-bottom:24px}
   #como-funciona .cc-how-steps{grid-template-columns:1fr;gap:13px}
   #como-funciona .cc-how-step{padding:26px;min-height:0}
