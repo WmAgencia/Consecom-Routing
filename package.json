@@ -13,7 +13,8 @@
     "check:services": "node scripts/check-services.mjs",
     "migrate": "bun run scripts/migrate.ts",
     "test:reveal": "bun run scripts/test-checkout-reveal.ts",
-    "check": "npm run validate && npm run check:services && npm run test:reveal",
+    "test:ssrf": "bun run scripts/test-panel-ssrf.ts",
+    "check": "npm run validate && npm run check:services && npm run test:reveal && npm run test:ssrf",
     "smoke:public": "node scripts/smoke-public.mjs"
   },
   "engines": {
