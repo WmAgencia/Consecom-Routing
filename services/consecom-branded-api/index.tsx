@@ -30,15 +30,12 @@ function resolveConsecomEffort(profile,raw){
 }
 const QUOTA_MESSAGE="Limite total de tokens esgotado. Esta API key atingiu o limite configurado. Solicite ao administrador do Consecom AI Proxy um aumento de franquia para continuar.";
 const jsonHeaders={"content-type":"application/json; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff"};
+const CONSECOM_INFERENCE_PATHS=Object.freeze(["/v1/messages","/messages","/v1/chat","/chat","/v1/completions","/completions","/v1/responses","/responses","/v1/embeddings","/embeddings","/v1/images","/images","/v1/models","/models","/v1/audio","/audio","/v1/rerank","/rerank"]);
+// Public surface: inference-compatible routes only. LiteLLM's UI, health probes and management
+// endpoints (key/model/user/team/organization/config/spend) are never reachable through this gateway.
 function isAllowed(path){
- return path==="/healthz" ||
-   path==="/v1/models" || path==="/models" ||
-   path.startsWith("/v1/messages") || path.startsWith("/messages") ||
-   path.startsWith("/v1/chat/") || path.startsWith("/chat/") ||
-   path.startsWith("/v1/completions") || path.startsWith("/completions") ||
-   path.startsWith("/v1/responses") || path.startsWith("/responses") ||
-   path.startsWith("/v1/embeddings") || path.startsWith("/embeddings") ||
-   path.startsWith("/v1/images/") || path.startsWith("/images/");
+ if(path==="/healthz")return true;
+ return CONSECOM_INFERENCE_PATHS.some(base=>path===base||path.startsWith(base+"/"));
 }
 function publicResponse(payload,status){
  return new Response(JSON.stringify(payload),{status,headers:jsonHeaders});
@@ -87,9 +84,12 @@ Bun.serve({
  async fetch(req){
   const requestUrl=new URL(req.url);
   if(requestUrl.pathname==="/healthz")return publicResponse({ok:true,service:"consecom-quota-aware-gateway"},200);
-  // All LiteLLM paths are forwarded, including its admin UI and authenticated management endpoints.
   const isAnthropicAlias=requestUrl.pathname==="/anthropic"||requestUrl.pathname.startsWith("/anthropic/");
   const targetPath=isAnthropicAlias?(requestUrl.pathname.slice("/anthropic".length)||"/"):requestUrl.pathname;
+  if(!isAllowed(targetPath)){
+    console.warn("CONSECOM_BLOCKED_PATH",req.method,String(targetPath).slice(0,120));
+    return publicResponse({error:{message:"Rota não encontrada",type:"not_found_error"}},404);
+  }
   const target=upstreamBase+targetPath+requestUrl.search;
   const outgoingHeaders=forwardHeaders(req);
   let body=(req.method==="GET"||req.method==="HEAD")?undefined:req.body;
@@ -162,7 +162,9 @@ Bun.serve({
   }
   if(req.method==="GET"&&targetPath==="/v1/models"&&upstream.ok){
     try{
-      const result=await upstream.json();
+      // Read once: the body cannot be consumed twice, and a non-standard 200 must still be relayed.
+      const text=await upstream.text();
+      const result=JSON.parse(text);
       if(Array.isArray(result.data)){
         const allowed=new Map(result.data.filter(x=>x&&typeof x.id==="string").map(x=>[x.id,x]));
         const discovery=CONSECOM_DISCOVERY_PROFILES.filter(p=>allowed.has(p.canonical)).map(p=>{
@@ -178,6 +180,10 @@ Bun.serve({
         headers.set("cache-control","private, no-store");
         return new Response(JSON.stringify({...result,data:enriched}),{status:upstream.status,headers});
       }
+      const headers=responseHeaders(upstream.headers,requestUrl);
+      for(const h of ["content-length","content-encoding"])headers.delete(h);
+      headers.set("content-type","application/json; charset=utf-8");
+      return new Response(text,{status:upstream.status,headers});
     }catch(err){
       return publicResponse({error:{message:"Não foi possível ler a descoberta de modelos",type:"gateway_error"}},502);
     }
