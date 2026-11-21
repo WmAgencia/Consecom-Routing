@@ -11,6 +11,7 @@
     "build:vercel": "node scripts/build-vercel.mjs",
     "validate": "node scripts/validate-repository.mjs",
     "check:services": "node scripts/check-services.mjs",
+    "migrate": "bun run scripts/migrate.ts",
     "check": "npm run validate && npm run check:services",
     "smoke:public": "node scripts/smoke-public.mjs"
   },

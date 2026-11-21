@@ -9,16 +9,32 @@
 5. Defina o diretório raiz de cada serviço para seu respectivo diretório.
 6. Configure as variáveis listadas no `.env.example` por serviço.
 
+## Migrações
+
+O schema é versionado em `migrations/` e aplicado por um comando único, idempotente e registrado em `consecom_schema_migrations`:
+
+```bash
+DATABASE_URL="postgres://..." npm run migrate
+```
+
+Regras:
+
+- Execute antes de criar ou atualizar qualquer serviço de aplicação.
+- Cada arquivo contém uma única instrução e é aplicado uma vez; não edite um arquivo já aplicado — crie o próximo número.
+- `consecom_usage_accounted` **não** é criada pelo repositório. A última migração falha de propósito se a relação não existir, porque uma tabela vazia desativaria o bloqueio de franquias em silêncio. Restaure a definição de produção com `pg_dump --schema-only -t consecom_usage_accounted` antes de migrar.
+- Os `CREATE TABLE IF NOT EXISTS` mantidos no boot dos serviços continuam válidos, mas a fonte de verdade é `migrations/`.
+
 ## Ordem recomendada
 
 1. Postgres
-2. Redis
-3. LiteLLM
-4. APIs públicas
-5. Portal e painel
-6. Checkout
-7. Landing
-8. Monitor de franquias
+2. Migrações (`npm run migrate`)
+3. Redis
+4. LiteLLM
+5. APIs públicas
+6. Portal e painel
+7. Checkout
+8. Landing
+9. Monitor de franquias
 
 ## Verificações
 
