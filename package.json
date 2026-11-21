@@ -11,7 +11,8 @@
     "build:vercel": "node scripts/build-vercel.mjs",
     "validate": "node scripts/validate-repository.mjs",
     "check:services": "node scripts/check-services.mjs",
-    "check": "npm run validate && npm run check:services",
+    "test:ssrf": "bun run scripts/test-panel-ssrf.ts",
+    "check": "npm run validate && npm run check:services && npm run test:ssrf",
     "smoke:public": "node scripts/smoke-public.mjs"
   },
   "engines": {
