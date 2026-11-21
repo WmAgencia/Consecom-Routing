@@ -2,6 +2,9 @@
 const upstreamBase=(Bun.env.LITELLM_URL || "http://litellm.railway.internal:4000").replace(/\/+$/,"");
 const master=Bun.env.LITELLM_MASTER_KEY || "";
 const port=Number(Bun.env.PORT||3000);
+// The signal aborts the response body too, so this ceiling bounds a whole streamed turn.
+// 120 s cut legitimate Claude Code generations; 15 min keeps a hard stop without interrupting them.
+const CONSECOM_UPSTREAM_TIMEOUT_MS=900000;
 const CONSECOM_MODEL_PROFILES=Object.freeze({"claude-sonnet-5-5":{"requested":"low","effective":"low","real":"deepseek-flash"},"claude-opus-5":{"requested":"low","effective":"low","real":"deepseek-flash"},"claude-fable-5":{"requested":"low","effective":"low","real":"deepseek-v4-pro"},"claude-opus-5-5":{"requested":"medium","effective":"high","real":"deepseek-flash"},"claude-fable-5-2":{"requested":"high","effective":"high","real":"deepseek-flash"},"claude-fable-5-1":{"requested":"high","effective":"high","real":"deepseek-v4-pro"}});
 const CONSECOM_DISCOVERY_PROFILES=Object.freeze([{"publicId":"consecom-claude-sonnet-5-5","canonical":"claude-sonnet-5-5","display":"Sonnet 5.5","desc":"Mais eficiente para tarefas do dia a dia","default":"low"},{"publicId":"consecom-claude-fable-5-1","canonical":"claude-fable-5-1","display":"Fable 5.1","desc":"Para programação e trabalhos que exigem raciocínio avançado","default":"high"},{"publicId":"consecom-claude-fable-5-2","canonical":"claude-fable-5-2","display":"Fable 5.2","desc":"Para desafios complexos e tarefas de alta exigência","default":"high"},{"publicId":"consecom-claude-opus-5-5","canonical":"claude-opus-5-5","display":"Opus 5.5","desc":"Mais eficiente para programação e tarefas do dia a dia","default":"medium"},{"publicId":"consecom-claude-fable-5","canonical":"claude-fable-5","display":"Fable 5","desc":"Para trabalhos ambiciosos que exigem maior capacidade","default":"low"},{"publicId":"consecom-claude-opus-5","canonical":"claude-opus-5","display":"Opus 5","desc":"Equilíbrio entre velocidade e capacidade para tarefas cotidianas","default":"low"}]);
 const CONSECOM_PUBLIC_MODELS=Object.freeze(Object.fromEntries(CONSECOM_DISCOVERY_PROFILES.map(p=>[p.publicId,p.canonical])));
@@ -155,7 +158,7 @@ Bun.serve({
     headers:outgoingHeaders,
     body,
     redirect:"manual",
-    signal:AbortSignal.timeout(120000)
+    signal:AbortSignal.timeout(CONSECOM_UPSTREAM_TIMEOUT_MS)
    });
   }catch(err){
    return publicResponse({error:{message:"Provedor temporariamente indisponível",type:"service_unavailable",code:"upstream_unavailable"}},503);
