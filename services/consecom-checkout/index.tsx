@@ -1,5 +1,16 @@
 
-(async function(){
+// Shared, testable reveal flow: decrypt first, consume only after it succeeds.
+// A failed decryption must never destroy the only copy of a paid key.
+export async function revealEncryptedKey(db,customerId,orderId,decrypt){
+ const rows=await db`SELECT encrypted_key FROM consecom_billing_site_orders WHERE id=${orderId} AND user_id=${customerId} AND status='fulfilled' AND encrypted_key IS NOT NULL LIMIT 1`;
+ if(!rows.length)return{status:"missing"};
+ let key;
+ try{key=decrypt(rows[0].encrypted_key)}catch{return{status:"decrypt_failed"}}
+ // Compare-and-swap: only the request that still sees the same ciphertext consumes it.
+ const consumed=await db`UPDATE consecom_billing_site_orders SET encrypted_key=NULL WHERE id=${orderId} AND user_id=${customerId} AND status='fulfilled' AND encrypted_key=${rows[0].encrypted_key} RETURNING id`;
+ return consumed.length?{status:"revealed",key}:{status:"missing"};
+}
+if(import.meta.main)(async function(){
  const {SQL}=await import("bun");const {randomUUID,randomBytes,pbkdf2Sync,createHmac,createHash,createCipheriv,createDecipheriv}=await import("node:crypto");
  const db=new SQL(Bun.env.DATABASE_URL),master=Bun.env.LITELLM_MASTER_KEY,litellm=Bun.env.LITELLM_URL,sessionSecret=Bun.env.SESSION_SECRET;
  const stripeKey=Bun.env.STRIPE_SECRET_KEY||"",webhookSecret=Bun.env.STRIPE_WEBHOOK_SECRET||"";
@@ -62,7 +73,15 @@
   return new Response(JSON.stringify({url:checkout.url}),{headers:{...headers,"Content-Type":"application/json","Set-Cookie":cookie(customer.id)}});
  }
  if(path==="/api/order"&&req.method==="GET"){const customer=await who(req);if(!customer?.active)return error("Entre para acompanhar",401);const sid=u.searchParams.get("session_id");if(!sid)return error("Pedido inválido",400);const orders=await db`SELECT id,status FROM consecom_billing_site_orders WHERE user_id=${customer.id} AND session_id=${sid} LIMIT 1`;return orders.length?response(orders[0]):error("Pedido não encontrado",404)}
- if(path==="/api/reveal"&&req.method==="POST"){const customer=await who(req);if(!customer?.active)return error("Sessão expirada",401);const b=await req.json(),id=String(b.orderId||"");if(!/^[a-f0-9-]{36}$/i.test(id))return error("Pedido inválido",400);const row=await db`WITH picked AS (SELECT encrypted_key FROM consecom_billing_site_orders WHERE id=${id} AND user_id=${customer.id} AND status='fulfilled' AND encrypted_key IS NOT NULL FOR UPDATE) UPDATE consecom_billing_site_orders o SET encrypted_key=NULL FROM picked WHERE o.id=${id} RETURNING picked.encrypted_key AS key`;return row.length?response({key:dec(row[0].key)}):error("Chave já revelada ou indisponível",404)}
+ if(path==="/api/reveal"&&req.method==="POST"){
+  const customer=await who(req);if(!customer?.active)return error("Sessão expirada",401);
+  const b=await req.json(),id=String(b.orderId||"");
+  if(!/^[a-f0-9-]{36}$/i.test(id))return error("Pedido inválido",400);
+  const outcome=await revealEncryptedKey(db,customer.id,id,dec);
+  if(outcome.status==="revealed")return response({key:outcome.key});
+  if(outcome.status==="decrypt_failed"){console.error("REVEAL_DECRYPT_FAILED",id.slice(0,8));return error("Não foi possível abrir sua chave. Fale com o suporte.",500)}
+  return error("Chave já revelada ou indisponível",404);
+ }
  return error("Rota não encontrada",404);
  }catch(e){console.error("BILLING_SITE_ERROR",String(e).slice(0,260));return error("Não foi possível concluir a operação",500)}
  }});
