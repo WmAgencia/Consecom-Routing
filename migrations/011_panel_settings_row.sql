@@ -1,0 +1,1 @@
+INSERT INTO consecom_proxy_panel_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
