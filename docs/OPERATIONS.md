@@ -20,7 +20,7 @@ Imagens de produção são fixadas e atualizadas manualmente somente depois de v
 ## Antes de habilitar pagamentos
 
 1. Configurar as duas variáveis da Stripe.
-2. Confirmar `checkoutReady: true`.
+2. Confirmar `checkoutReady: true` e `mode: "test"` em `/healthz` durante a validação; em produção, `mode: "live"`.
 3. Cadastrar o webhook apontando para `/webhooks/stripe`.
 4. Executar compra de ponta a ponta no modo de teste.
 5. Confirmar que a chave é revelada uma única vez.

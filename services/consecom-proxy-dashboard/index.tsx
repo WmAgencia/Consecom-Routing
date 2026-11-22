@@ -1,4 +1,28 @@
-(async function panelServer() {
+// HTTPS base URL accepted for a provider: public host only, no credentials, query or fragment.
+// WHATWG URL keeps IPv6 literals wrapped in brackets, so strip them before checking.
+export function publicHttpsBase(raw) {
+  try {
+    const parsed = new URL(String(raw || "").trim());
+    if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.search || parsed.hash) return null;
+    const host = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, "");
+    if (!host || host === "localhost" || host.endsWith(".localhost") || host.endsWith(".internal") || host.endsWith(".local")) return null;
+    if (/^\d+$/.test(host) || /^0x/i.test(host)) return null; // numeric IPv4 forms
+    if (host.includes(":")) {
+      // "::" covers ::, ::1, IPv4-mapped addresses and the deprecated IPv4-compatible range.
+      if (host.startsWith("::") || /^(fc|fd|fe[89ab])/.test(host)) return null;
+      return parsed.href.replace(/\/+$/, "");
+    }
+    const parts = host.split(".");
+    if (parts.length === 4 && parts.every((part) => /^\d{1,3}$/.test(part))) {
+      const [a, b] = parts.map(Number);
+      if (a === 0 || a === 10 || a === 127 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127)) return null;
+    }
+    return parsed.href.replace(/\/+$/, "");
+  } catch {
+    return null;
+  }
+}
+if (import.meta.main) (async function panelServer() {
   const { SQL } = await import("bun");
   const sql = new SQL(Bun.env.DATABASE_URL);
   const proxy = Bun.env.LITELLM_URL || "http://litellm.railway.internal:4000";
@@ -155,7 +179,7 @@
 
   async function resolveKeyOwner(optionalId,viewer){
     if(!optionalId)return {id:viewer.id,tenantId:viewer.tenantId};
-    const rows=await sql`SELECT id,tenant_id AS "tenantId" FROM consecom_users WHERE id=${optionalId} AND role='employee' AND is_active=true LIMIT 1`;
+    const rows=await sql`SELECT u.id,u.tenant_id AS "tenantId" FROM consecom_users u WHERE u.id=${optionalId} AND u.role='employee' AND u.is_active=true AND NOT EXISTS(SELECT 1 FROM consecom_tenants t WHERE t.id=u.tenant_id AND t.slug LIKE 'client-%') LIMIT 1`;
     return rows[0]||null;
   }
   const html = String.raw`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -563,7 +587,8 @@ catch(x){er.textContent=x.message||"Não foi possível entrar.";er.style.display
         if (u.pathname==="/api/employees" && req.method==="GET"){
           const users=await sql`SELECT u.id,u.display_name AS name,u.email,u.is_active AS active,u.created_at AS "createdAt",
             COUNT(k.key_token)::int AS "keyCount" FROM consecom_users u LEFT JOIN consecom_key_owners k ON k.owner_user_id=u.id
-            WHERE u.role='employee' GROUP BY u.id ORDER BY u.created_at DESC LIMIT 250`;
+            WHERE u.role='employee' AND NOT EXISTS(SELECT 1 FROM consecom_tenants t WHERE t.id=u.tenant_id AND t.slug LIKE 'client-%')
+            GROUP BY u.id ORDER BY u.created_at DESC LIMIT 250`;
           return response({employees:users});
         }
         if (u.pathname==="/api/employees/create" && req.method==="POST"){
@@ -583,7 +608,7 @@ catch(x){er.textContent=x.message||"Não foi possível entrar.";er.style.display
           const raw=await req.text();if(raw.length>2000)return response({error:"Solicitação muito grande"},413);
           const b=JSON.parse(raw),id=String(b.id||""),active=b.active;
           if(typeof active!=="boolean")return response({error:"Situação inválida"},400);
-          const rows=await sql`SELECT id FROM consecom_users WHERE id=${id} AND role='employee' LIMIT 1`;
+          const rows=await sql`SELECT u.id FROM consecom_users u WHERE u.id=${id} AND u.role='employee' AND NOT EXISTS(SELECT 1 FROM consecom_tenants t WHERE t.id=u.tenant_id AND t.slug LIKE 'client-%') LIMIT 1`;
           if(!rows.length)return response({error:"Funcionário não encontrado"},404);
           if(!active){
             const keys=await sql`SELECT key_token FROM consecom_key_owners WHERE owner_user_id=${id}`;
@@ -595,7 +620,7 @@ catch(x){er.textContent=x.message||"Não foi possível entrar.";er.style.display
         if(u.pathname==="/api/employees/reset-password" && req.method==="POST"){
           const raw=await req.text();if(raw.length>2000)return response({error:"Solicitação muito grande"},413);
           const id=String(JSON.parse(raw).id||"");
-          const check=await sql`SELECT id FROM consecom_users WHERE id=${id} AND role='employee' LIMIT 1`;
+          const check=await sql`SELECT u.id FROM consecom_users u WHERE u.id=${id} AND u.role='employee' AND NOT EXISTS(SELECT 1 FROM consecom_tenants t WHERE t.id=u.tenant_id AND t.slug LIKE 'client-%') LIMIT 1`;
           if(!check.length)return response({error:"Funcionário não encontrado"},404);
           const password=randomPassword();
           await sql`UPDATE consecom_users SET password_hash=${hashPassword(password)},session_version=session_version+1,updated_at=CURRENT_TIMESTAMP WHERE id=${id}`;
@@ -661,13 +686,8 @@ catch(x){er.textContent=x.message||"Não foi possível entrar.";er.style.display
           if(!model||model.length>150||/[\x00-\x20]/.test(model))return response({error:"Identificador do modelo inválido"},400);
           if(apiKey.length<8||apiKey.length>4000||apiKey.startsWith("os.environ/"))return response({error:"Informe uma API key válida do provedor"},400);
           if((priceIn!==null&&(!Number.isFinite(priceIn)||priceIn<0||priceIn>100000))||(priceOut!==null&&(!Number.isFinite(priceOut)||priceOut<0||priceOut>100000)))return response({error:"Tarifa por milhão inválida"},400);
-          let baseUrl;
-          try {
-            const parsed=new URL(String(body.baseUrl||"").trim());
-            const h=parsed.hostname.toLowerCase();
-            if(parsed.protocol!=="https:"||!h||parsed.username||parsed.password||parsed.search||parsed.hash||h==="localhost"||h==="127.0.0.1"||h.endsWith(".internal")||h.endsWith(".local")||h==="169.254.169.254"||h==="::1"||/^(10|127|192\.168)\./.test(h)||/^172\.(1[6-9]|2\d|3[0-1])\./.test(h))throw Error("Insecure");
-            baseUrl=parsed.href.replace(/\/+$/,"");
-          }catch{return response({error:"Informe uma Base URL HTTPS pública válida, sem usuário, senha ou parâmetros"},400);}
+          const baseUrl=publicHttpsBase(body.baseUrl);
+          if(!baseUrl)return response({error:"Informe uma Base URL HTTPS pública válida, sem usuário, senha ou parâmetros"},400);
           const available=await upstream("/model/info");
           if((available.data||[]).some(m=>m.model_name===alias))return response({error:"Já existe um modelo com esse nome. Use um alias diferente."},409);
           const litellmParams={model:(kind==="anthropic"?"anthropic/":"openai/")+model,api_base:baseUrl,api_key:apiKey};
@@ -689,12 +709,8 @@ catch(x){er.textContent=x.message||"Não foi possível entrar.";er.style.display
           const model=String(b.model||"").trim();
           const kind=b.protocol==="anthropic"?"anthropic":"openai";
           if(name.length<2||name.length>90||!model||model.length>150||/[\x00-\x20]/.test(model))return response({error:"Nome ou identificador de modelo inválido"},400);
-          let baseUrl;
-          try{
-            const parsed=new URL(String(b.baseUrl||"").trim());const h=parsed.hostname.toLowerCase();
-            if(parsed.protocol!=="https:"||parsed.username||parsed.password||parsed.search||parsed.hash||h==="localhost"||h.endsWith(".internal")||h.endsWith(".local")||h==="127.0.0.1"||h==="169.254.169.254"||/^(10|127|192\.168)\./.test(h)||/^172\.(1[6-9]|2\d|3[0-1])\./.test(h))throw Error("Invalid");
-            baseUrl=parsed.href.replace(/\/+$/,"");
-          }catch{return response({error:"Base URL HTTPS inválida"},400);}
+          const baseUrl=publicHttpsBase(b.baseUrl);
+          if(!baseUrl)return response({error:"Base URL HTTPS inválida"},400);
           const update={model:(kind==="anthropic"?"anthropic/":"openai/")+model,api_base:baseUrl};
           if(typeof b.apiKey==="string"&&b.apiKey.trim()){
             if(b.apiKey.trim().length<8||b.apiKey.length>4000||b.apiKey.startsWith("os.environ/"))return response({error:"API key inválida"},400);
