@@ -28,16 +28,6 @@
       "permanent": false
     },
     {
-      "source": "/cadastro",
-      "destination": "https://consecom-checkout-production.up.railway.app/comprar",
-      "permanent": false
-    },
-    {
-      "source": "/comprar",
-      "destination": "https://consecom-checkout-production.up.railway.app/comprar",
-      "permanent": false
-    },
-    {
       "source": "/admin",
       "destination": "https://consecom-ai-portal-production.up.railway.app/admin",
       "permanent": false
@@ -46,6 +36,44 @@
       "source": "/cliente",
       "destination": "https://consecom-ai-portal-production.up.railway.app/cliente",
       "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/comprar",
+      "destination": "https://consecom-checkout-production.up.railway.app/comprar"
+    },
+    {
+      "source": "/cadastro",
+      "destination": "https://consecom-checkout-production.up.railway.app/comprar"
+    },
+    {
+      "source": "/checkout",
+      "destination": "https://consecom-checkout-production.up.railway.app/comprar"
+    },
+    {
+      "source": "/sucesso",
+      "destination": "https://consecom-checkout-production.up.railway.app/sucesso"
+    },
+    {
+      "source": "/api/start",
+      "destination": "https://consecom-checkout-production.up.railway.app/api/start"
+    },
+    {
+      "source": "/api/cancel",
+      "destination": "https://consecom-checkout-production.up.railway.app/api/cancel"
+    },
+    {
+      "source": "/api/order",
+      "destination": "https://consecom-checkout-production.up.railway.app/api/order"
+    },
+    {
+      "source": "/api/reveal",
+      "destination": "https://consecom-checkout-production.up.railway.app/api/reveal"
+    },
+    {
+      "source": "/api/status",
+      "destination": "https://consecom-checkout-production.up.railway.app/api/status"
     }
   ]
 }
