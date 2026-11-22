@@ -21,23 +21,7 @@
       ]
     }
   ],
-  "redirects": [
-    {
-      "source": "/login",
-      "destination": "https://consecom-ai-portal-production.up.railway.app/login",
-      "permanent": false
-    },
-    {
-      "source": "/admin",
-      "destination": "https://consecom-ai-portal-production.up.railway.app/admin",
-      "permanent": false
-    },
-    {
-      "source": "/cliente",
-      "destination": "https://consecom-ai-portal-production.up.railway.app/cliente",
-      "permanent": false
-    }
-  ],
+  "redirects": [],
   "rewrites": [
     {
       "source": "/comprar",
@@ -74,6 +58,38 @@
     {
       "source": "/api/status",
       "destination": "https://consecom-checkout-production.up.railway.app/api/status"
+    },
+    {
+      "source": "/login",
+      "destination": "https://consecom-ai-portal-production.up.railway.app/login"
+    },
+    {
+      "source": "/admin",
+      "destination": "https://consecom-ai-portal-production.up.railway.app/admin"
+    },
+    {
+      "source": "/cliente",
+      "destination": "https://consecom-ai-portal-production.up.railway.app/cliente"
+    },
+    {
+      "source": "/auth/:path*",
+      "destination": "https://consecom-ai-portal-production.up.railway.app/auth/:path*"
+    },
+    {
+      "source": "/api/client/:path*",
+      "destination": "https://consecom-ai-portal-production.up.railway.app/api/client/:path*"
+    },
+    {
+      "source": "/api/admin/:path*",
+      "destination": "https://consecom-ai-portal-production.up.railway.app/api/admin/:path*"
+    },
+    {
+      "source": "/api/account/:path*",
+      "destination": "https://consecom-ai-portal-production.up.railway.app/api/account/:path*"
+    },
+    {
+      "source": "/api/me",
+      "destination": "https://consecom-ai-portal-production.up.railway.app/api/me"
     }
   ]
 }
